@@ -10,25 +10,25 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.02';
-$DATE = '2004/04/01';
+$VERSION = '0.03';
+$DATE = '2004/04/02';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.02 2004/04/01), 'revised 0.01'],
-    'MANIFEST' => [qw(0.02 2004/04/01), 'generated, replaces 0.01'],
-    'Makefile.PL' => [qw(0.02 2004/04/01), 'generated, replaces 0.01'],
-    'README' => [qw(0.02 2004/04/01), 'generated, replaces 0.01'],
-    'lib/Tie/Gzip.pm' => [qw(1.12 2004/04/01), 'revised 1.11'],
-    't/Tie/Gzip.pm' => [qw(0.02 2004/04/01), 'revised 0.01'],
+    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.03 2004/04/02), 'revised 0.02'],
+    'MANIFEST' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
+    'Makefile.PL' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
+    'README' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
+    'lib/Tie/Gzip.pm' => [qw(1.12 2004/04/01), 'unchanged'],
+    't/Tie/Gzip.pm' => [qw(0.02 2004/04/01), 'unchanged'],
     't/Tie/Gzip.t' => [qw(0.01 2003/09/12), 'unchanged'],
     't/Tie/Gzip.d' => [qw(0.01 2003/09/12), 'unchanged'],
-    'tlib/File/Package.pm' => [qw(1.13 2004/04/01), 'revised 1.12'],
-    'tlib/File/SmartNL.pm' => [qw(1.13 2004/04/01), 'revised 1.12'],
-    'tlib/Test/Tech.pm' => [qw(1.15 2004/04/01), 'revised 1.12'],
-    'tlib/Test/Secs2.pm' => [qw(1.15 2004/04/01), 'new'],
-    'tlib/File/TestPath.pm' => [qw(1.11 2004/04/01), 'new'],
+    'tlib/File/Package.pm' => [qw(1.13 2004/04/02), 'unchanged'],
+    'tlib/File/SmartNL.pm' => [qw(1.13 2004/04/02), 'unchanged'],
+    'tlib/Test/Tech.pm' => [qw(1.15 2004/04/02), 'unchanged'],
+    'tlib/Data/Secs2.pm' => [qw(1.15 2004/04/02), 'new'],
+    'tlib/File/TestPath.pm' => [qw(1.11 2004/04/02), 'unchanged'],
     't/Tie/Gzip0.htm' => [qw(0.01 2003/09/12), 'unchanged'],
 
 );
@@ -58,9 +58,9 @@ use vars qw(%INVENTORY);
 
  Revision: A
 
- Version: 0.02
+ Version: 0.03
 
- Date: 2004/04/01
+ Date: 2004/04/02
 
  Prepared for: General Public 
 
@@ -113,7 +113,7 @@ where the string '{}' is a placeholder for the I<filename>.
 
 =head2 1.3 Document overview.
 
-This document releases Tie::Gzip version 0.02
+This document releases Tie::Gzip version 0.03
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -126,12 +126,14 @@ system file specification.
 
 =head2 3.1 Inventory of materials released.
 
-This document releases the file found
-at the following repository(s):
+This document releases the file 
 
-   http://www.softwarediamonds/packages/Tie-Gzip-0.02
-   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/Tie-Gzip-0.02
+ Tie-Gzip-0.03.tar.gz
 
+found at the following repository(s):
+
+  http://www.softwarediamonds/packages/
+  http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
 Restrictions regarding duplication and license provisions
 are as follows:
@@ -198,19 +200,19 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/Tie_Gzip.pm                                0.02    2004/04/01 revised 0.01
- MANIFEST                                                     0.02    2004/04/01 generated, replaces 0.01
- Makefile.PL                                                  0.02    2004/04/01 generated, replaces 0.01
- README                                                       0.02    2004/04/01 generated, replaces 0.01
- lib/Tie/Gzip.pm                                              1.12    2004/04/01 revised 1.11
- t/Tie/Gzip.pm                                                0.02    2004/04/01 revised 0.01
+ lib/Docs/Site_SVD/Tie_Gzip.pm                                0.03    2004/04/02 revised 0.02
+ MANIFEST                                                     0.03    2004/04/02 generated, replaces 0.02
+ Makefile.PL                                                  0.03    2004/04/02 generated, replaces 0.02
+ README                                                       0.03    2004/04/02 generated, replaces 0.02
+ lib/Tie/Gzip.pm                                              1.12    2004/04/01 unchanged
+ t/Tie/Gzip.pm                                                0.02    2004/04/01 unchanged
  t/Tie/Gzip.t                                                 0.01    2003/09/12 unchanged
  t/Tie/Gzip.d                                                 0.01    2003/09/12 unchanged
- tlib/File/Package.pm                                         1.13    2004/04/01 revised 1.12
- tlib/File/SmartNL.pm                                         1.13    2004/04/01 revised 1.12
- tlib/Test/Tech.pm                                            1.15    2004/04/01 revised 1.12
- tlib/Test/Secs2.pm                                           1.15    2004/04/01 new
- tlib/File/TestPath.pm                                        1.11    2004/04/01 new
+ tlib/File/Package.pm                                         1.13    2004/04/02 unchanged
+ tlib/File/SmartNL.pm                                         1.13    2004/04/02 unchanged
+ tlib/Test/Tech.pm                                            1.15    2004/04/02 unchanged
+ tlib/Data/Secs2.pm                                           1.15    2004/04/02 new
+ tlib/File/TestPath.pm                                        1.11    2004/04/02 unchanged
  t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
 
 
@@ -280,6 +282,11 @@ A successful request won't leave anything useful there."
 So $! is only sourced when a system error occurs and it is not cleared prior
 to the call. If no error occurs, the value is indeterminate.
 
+=item Tie::Gzip-0.03
+
+prerequisite program because loaded the  Data::Secs2 test modules
+to tlib\Test instead of tlib\Data.
+
 =back
 
 =head2 3.4 Adaptation data.
@@ -304,18 +311,36 @@ and installation support are as follows:
 
 =item Installation Instructions.
 
-To installed the release file, use the CPAN module in the Perl release
+To installed the release file, use the CPAN module
+pr PPM module in the Perl release
 or the INSTALL.PL script at the following web site:
 
  http://packages.SoftwareDiamonds.com
 
 Follow the instructions for the the chosen installation software.
 
-The distribution file is at the following respositories:
+If all else fails, the file may be manually installed.
+Enter one of the following repositories in a web browser:
 
-   http://www.softwarediamonds/packages/Tie-Gzip-0.02
-   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/Tie-Gzip-0.02
+  http://www.softwarediamonds/packages/
+  http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
+Right click on 'Tie-Gzip-0.03.tar.gz' and download to a temporary
+installation directory.
+Enter the following where $make is 'nmake' for microsoft
+windows; otherwise 'make'.
+
+ gunzip Tie-Gzip-0.03.tar.gz
+ tar -xf Tie-Gzip-0.03.tar
+ perl Makefile.PL
+ $make test
+ $make install
+
+On Microsoft operating system, nmake, tar, and gunzip 
+must be in the exeuction path. If tar and gunzip are
+not install, download and install unxutils from
+
+ http://packages.softwarediamonds.com
 
 =item Prerequistes.
 
@@ -397,10 +422,10 @@ extension for a Perl test script file
 __DATA__
 
 DISTNAME: Tie-Gzip^
-VERSION : 0.02^
-FREEZE: 0^
+VERSION : 0.03^
+FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE: 0.01 ^
+PREVIOUS_RELEASE: 0.02 ^
 REVISION: A ^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
@@ -433,7 +458,7 @@ t/Tie/Gzip.d
 lib/File/Package.pm => tlib/File/Package.pm
 lib/File/SmartNL.pm => tlib/File/SmartNL.pm
 lib/Test/Tech.pm => tlib/Test/Tech.pm
-lib/Data/Secs2.pm => tlib/Test/Secs2.pm
+lib/Data/Secs2.pm => tlib/Data/Secs2.pm
 lib/File/TestPath.pm => tlib/File/TestPath.pm
 ^
 
@@ -507,6 +532,11 @@ A successful request won't leave anything useful there."
 
 So $! is only sourced when a system error occurs and it is not cleared prior
 to the call. If no error occurs, the value is indeterminate.
+
+\=item Tie::Gzip-0.03
+
+prerequisite program because loaded the  Data::Secs2 test modules
+to tlib\Test instead of tlib\Data.
 
 \=back
 
@@ -593,16 +623,35 @@ ANY WAY OUT OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 INSTALLATION:
-To installed the release file, use the CPAN module in the Perl release
+To installed the release file, use the CPAN module
+pr PPM module in the Perl release
 or the INSTALL.PL script at the following web site:
 
  http://packages.SoftwareDiamonds.com
 
 Follow the instructions for the the chosen installation software.
 
-The distribution file is at the following respositories:
+If all else fails, the file may be manually installed.
+Enter one of the following repositories in a web browser:
 
 ${REPOSITORY}
+
+Right click on '${DIST_FILE}' and download to a temporary
+installation directory.
+Enter the following where $make is 'nmake' for microsoft
+windows; otherwise 'make'.
+
+ gunzip ${BASE_DIST_FILE}.tar.${COMPRESS_SUFFIX}
+ tar -xf ${BASE_DIST_FILE}.tar
+ perl Makefile.PL
+ $make test
+ $make install
+
+On Microsoft operating system, nmake, tar, and gunzip 
+must be in the exeuction path. If tar and gunzip are
+not install, download and install unxutils from
+
+ http://packages.softwarediamonds.com
 ^
 
 SUPPORT: 603 882-0846 E<lt>support@SoftwareDiamonds.comE<gt>^

@@ -12,7 +12,7 @@ use attributes;
 
 use vars qw($VERSION $DATE $FILE);
 $VERSION = '1.15';
-$DATE = '2004/04/01';
+$DATE = '2004/04/02';
 $FILE = __FILE__;
 
 use vars qw(@ISA @EXPORT_OK);
