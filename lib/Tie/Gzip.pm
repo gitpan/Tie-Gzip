@@ -10,8 +10,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.11';
-$DATE = '2003/09/12';
+$VERSION = '1.12';
+$DATE = '2004/04/01';
 $FILE = __FILE__;
 
 use File::Spec;
@@ -127,6 +127,7 @@ sub OPEN
              # not a recognized command
              #
              my $success = open PIPE, $pipe;
+             $! = 0;    ### MAS ###
              if($! || !$success) {
                  warn "Could not pipe $pipe: $!\n";
                  $self->CLOSE;
@@ -169,6 +170,7 @@ sub OPEN
              # not a recognized command
              #
              my $success = open PIPE, $pipe;
+             $! = 0;    ### MAS ###
              if($! || !$success) {
                  warn "Could not pipe $pipe: $!\n";
                  $self->CLOSE;
@@ -518,7 +520,7 @@ Tie::Gzip - read and write gzip compressed files
 
 The 'Tie::Gzip' module provides a file handle Tie 
 for compressing and uncompressing files using
-the gzip format.
+the gzip compression format.
 
 By tieing a filehandle to 'Tie::Gzip' subsequent uses
 of the file subroutines with the tied filehandle will
@@ -587,18 +589,18 @@ restrictions:
 
 =item open
 
-The open command will accept on the '>' and the '<' modes.
+The open command will accept only the '>' and the '<' modes.
 All other modes are invalid. 
 The 'Tie::Gzip' tie does provide greatly limited piping
 capabilities with the 'read_pipe' and 'write_pipe' options.
-Feature ceep of reading and writing a compress file is
+Feature creep of reading and writing a compress file is
 coming.
 
 =item seek
 
 The seek is only valid for mode 1, positive seeks when
 reading a compress files.
-Feature ceep of seek is comming.
+Feature creep of seek is comming.
 
 =item fileno
 
@@ -882,12 +884,66 @@ Gzip file disciplines are available in the newer
 version of Perls.
 Altough the C code was not examined for this module,
 there appears in the POD a somewhat different approach
-at handle the issue processing the file content that
+to processing the file content that
 is not gzip compressed. 
 There is a lot of gzip header checking and whatever.
 
 Many of the older Perls in wide spread use do
 not support file disciplines.
+
+head2 FEEDBACK
+
+From: Mark.Scarton@FranklinCovey.com 
+Date: Thu, 19 Feb 2004 17:23:37 -0700 
+
+In the 'lib/Tie/Gzip.pm' module of the Tie-Gzip-0.01 package,
+the open of the pipe ("gzip --decompress --stdout |") is
+failing due to the reference to $! in the conditional.
+As a test, I cleared $! before issuing the open call as follows:
+
+Line 124:
+
+             ###############
+             # Some perls will return a glob and a warning
+             # for certain pipe errors such as the command
+             # not a recognized command
+             #
+             $! = 0;    ### MAS ###
+             my $success = open PIPE, $pipe;
+             if($! || !$success) {
+                 warn "Could not pipe $pipe: $!\n";
+                 $self->CLOSE;
+                 return undef;
+             }
+
+Line 167:
+
+             ###############
+             # Some perls will return a glob and a warning
+             # for certain pipe errors such as the command
+             # not a recognized command
+             #
+             $! = 0;    ### MAS ###
+             my $success = open PIPE, $pipe;
+             if($! || !$success) {
+                 warn "Could not pipe $pipe: $!\n";
+                 $self->CLOSE;
+                 return undef;
+             }
+
+This works. Prior to making this change, test 6 of Gzip.t would fail.
+
+According to the Learning Perl O'Reilly book, 
+
+"But if you use die to indicate an error that is not the failure of a
+system request, don't include $!, since it will generally hold
+an unrelated message left over from something Perl did internally.
+It will hold a useful value only immediately after a failed system request.
+A successful request won't leave anything useful there."
+
+So $! is only sourced when a system error occurs and it is not cleared prior
+to the call. If no error occurs, the value is indeterminate.
+
 
 head2 FILES
 
@@ -948,7 +1004,7 @@ at least 'Changes' field.
 
 Execute the following:
 
- vmake readme_html all -pm=Docs::Site_SVD::Tie_Gzip
+ vmake readme_html all -pm=Docs::Site_SVD::Tie_Gzip -verbose
 
 =back
 

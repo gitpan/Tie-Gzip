@@ -10,8 +10,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.01';
-$DATE = '2003/09/12';
+$VERSION = '0.02';
+$DATE = '2004/04/01';
 $FILE = __FILE__;
 
 ########
@@ -587,7 +587,7 @@ ok: 11^
 
  C: unlink 'Gzip1.htm'^
 
-See_Also: L<Compress::Gzip>^
+See_Also: L<Tie::Gzip>^
 
 Copyright:
 copyright © 2003 Software Diamonds.
