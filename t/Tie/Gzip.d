@@ -7,7 +7,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE);
-$VERSION = '0.02';   # automatically generated file
+$VERSION = '0.03';   # automatically generated file
 $DATE = '2004/04/15';
 
 
@@ -133,14 +133,14 @@ demo( "\$errors", # typed in command
 print << 'EOF';
 
  => ##################
- => # Tie::Gzip Verion $Tie::Gzip::VERSION
+ => # Tie::Gzip Version $Tie::Gzip::VERSION loaded
  => # 
  => ###
 
 EOF
 
-demo( "\$Tie\:\:Gzip\:\:VERSION", # typed in command           
-      $Tie::Gzip::VERSION); # execution
+demo( "\$loaded\ \=\ \$fp\-\>is_package_loaded\(\$uut\)", # typed in command           
+      $loaded = $fp->is_package_loaded($uut)); # execution
 
 
 demo( "\ \ \ \ \ \ sub\ gz_decompress\
@@ -295,7 +295,7 @@ demo( "\ \ \ \ \#\#\#\#\#\ \
 \ \ \ \ my\ \$perl_gzip_success\ \=\ 0\;\
 \ \ \ \ my\ \$os_gzip_success\ \=\ 0\;\
 \ \ \ \ if\(\$gzip_opportunity\)\ \{\
-\ \ \ \ \ \ \ \ if\(gz_package\)\ \{\
+\ \ \ \ \ \ \ \ if\(\$gz_package\)\ \{\
 \ \ \ \ \ \ \ \ \ \ \ \ \$perl_gzip_success\ \=1\;\
 \ \ \ \ \ \ \ \ \ \ \ \ \$os_gzip_success\ \=\ 0\;\
 \ \ \ \ \ \ \ \ \}\
@@ -322,7 +322,7 @@ demo( "\ \ \ \ \#\#\#\#\#\ \
     my $perl_gzip_success = 0;
     my $os_gzip_success = 0;
     if($gzip_opportunity) {
-        if(gz_package) {
+        if($gz_package) {
             $perl_gzip_success =1;
             $os_gzip_success = 0;
         }

@@ -10,7 +10,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.03';
+$VERSION = '0.04';
 $DATE = '2004/04/15';
 $FILE = __FILE__;
 
@@ -110,9 +110,9 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
 
 =head2 ok: 3
 
-  N: Tie::Gzip Verion $Tie::Gzip::VERSION^
-  A: $Tie::Gzip::VERSION^
-  E: $Tie::Gzip::VERSION^
+  N: Tie::Gzip Version $Tie::Gzip::VERSION loaded^
+  A: $loaded = $fp->is_package_loaded($uut)^
+  E: 1^
  ok: 3^
 
 =head2 ok: 4
@@ -194,7 +194,7 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
      my $perl_gzip_success = 0;
      my $os_gzip_success = 0;
      if($gzip_opportunity) {
-         if(gz_package) {
+         if($gz_package) {
              $perl_gzip_success =1;
              $os_gzip_success = 0;
          }
@@ -447,9 +447,9 @@ ok: 1^
 SE: ''^
 ok: 2^
 
- N: Tie::Gzip Verion $Tie::Gzip::VERSION^
- A: $Tie::Gzip::VERSION^
- E: $Tie::Gzip::VERSION^
+ N: Tie::Gzip Version $Tie::Gzip::VERSION loaded^
+ A: $loaded = $fp->is_package_loaded($uut)^
+ E: 1^
 ok: 3^
 
 
@@ -531,7 +531,7 @@ ok: 5^
     my $perl_gzip_success = 0;
     my $os_gzip_success = 0;
     if($gzip_opportunity) {
-        if(gz_package) {
+        if($gz_package) {
             $perl_gzip_success =1;
             $os_gzip_success = 0;
         }

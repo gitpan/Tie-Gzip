@@ -120,6 +120,10 @@ REQUIREMENTS
         unit or executable program in accordance with RFC 1951 and RFC 1952.
 
 DEMONSTRATION
+     #########
+     # perl Gzip.d
+     ###
+
      ~~~~~~ Demonstration overview ~~~~~
 
     Perl code begins with the prompt
@@ -153,12 +157,12 @@ DEMONSTRATION
      ''
 
      => ##################
-     => # Tie::Gzip Verion $Tie::Gzip::VERSION
+     => # Tie::Gzip Version $Tie::Gzip::VERSION loaded
      => # 
      => ###
 
-     => $Tie::Gzip::VERSION
-     '1.12'
+     => $loaded = $fp->is_package_loaded($uut)
+     1
 
      =>       sub gz_decompress
      =>      {
@@ -243,7 +247,7 @@ DEMONSTRATION
      =>     my $perl_gzip_success = 0;
      =>     my $os_gzip_success = 0;
      =>     if($gzip_opportunity) {
-     =>         if(gz_package) {
+     =>         if($gz_package) {
      =>             $perl_gzip_success =1;
      =>             $os_gzip_success = 0;
      =>         }
@@ -547,9 +551,9 @@ Title Page
 
      Tie::Gzip - gzip with a small memory footprint
 
-     Revision: B
+     Revision: D
 
-     Version: 0.04
+     Version: 0.05
 
      Date: 2004/04/15
 
@@ -598,7 +602,7 @@ Title Page
 
   1.3 Document overview.
 
-    This document releases Tie::Gzip version 0.04 providing a description of
+    This document releases Tie::Gzip version 0.05 providing a description of
     the inventory, installation instructions and other information necessary
     to utilize and track this release.
 
@@ -610,7 +614,7 @@ Title Page
 
     This document releases the file
 
-     Tie-Gzip-0.04.tar.gz
+     Tie-Gzip-0.05.tar.gz
 
     found at the following repository(s):
 
@@ -660,19 +664,19 @@ Title Page
 
      file                                                         version date       comment
      ------------------------------------------------------------ ------- ---------- ------------------------
-     lib/Docs/Site_SVD/Tie_Gzip.pm                                0.04    2004/04/15 revised 0.03
-     MANIFEST                                                     0.04    2004/04/15 generated, replaces 0.03
-     Makefile.PL                                                  0.04    2004/04/15 generated, replaces 0.03
-     README                                                       0.04    2004/04/15 generated, replaces 0.03
-     lib/Tie/Gzip.pm                                              1.13    2004/04/15 revised 1.12
-     t/Tie/Gzip.pm                                                0.03    2004/04/15 revised 0.02
-     t/Tie/Gzip.t                                                 0.02    2004/04/15 revised 0.01
-     t/Tie/Gzip.d                                                 0.02    2004/04/15 revised 0.01
-     t/Tie/File/Package.pm                                        1.16    2004/04/15 new
-     t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 new
-     t/Tie/Test/Tech.pm                                           1.18    2004/04/15 new
-     t/Tie/Data/Secs2.pm                                          1.16    2004/04/15 new
-     t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 new
+     lib/Docs/Site_SVD/Tie_Gzip.pm                                0.05    2004/04/15 revised 0.04
+     MANIFEST                                                     0.05    2004/04/15 generated, replaces 0.04
+     Makefile.PL                                                  0.05    2004/04/15 generated, replaces 0.04
+     README                                                       0.05    2004/04/15 generated, replaces 0.04
+     lib/Tie/Gzip.pm                                              1.14    2004/04/15 revised 1.13
+     t/Tie/Gzip.pm                                                0.04    2004/04/15 revised 0.03
+     t/Tie/Gzip.t                                                 0.03    2004/04/15 revised 0.02
+     t/Tie/Gzip.d                                                 0.03    2004/04/15 revised 0.02
+     t/Tie/File/Package.pm                                        1.16    2004/04/15 unchanged
+     t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 unchanged
+     t/Tie/Test/Tech.pm                                           1.19    2004/04/15 revised 1.18
+     t/Tie/Data/Secs2.pm                                          1.17    2004/04/15 unchanged
+     t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 unchanged
      t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
 
   3.3 Changes
@@ -780,6 +784,37 @@ Title Page
         the "ok" and "skip" subroutines. Added test code to skip outside the
         "ok" and "skip" subroutines.
 
+    Tie::Gzip-0.05
+        The distribution "Tie::Gzip-0.04" failed acrossed many systems. Very
+        strange since it passes as follows:
+
+         PASSED:
+         # Running under perl version 5.006001 for MSWin32
+         # Win32::BuildNumber 635
+
+         FAILED:
+
+          t/Tie/Gzip....Bareword "gz_package" not allowed while "strict subs" in use at t/Tie/Gzip.t line 265.
+
+          Summary of my perl5 (revision 5.0 version 8 subversion 0) configuration:
+            Platform:
+              osname=linux, osvers=2.4.22-4tr, archname=i586-linux
+
+          Summary of my perl5 (revision 5.0 version 8 subversion 1) configuration:
+            Platform:
+              osname=solaris, osvers=2.8, archname=sun4-solaris
+
+          Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+            Platform:
+              osname=solaris, osvers=2.8, archname=sun4-solaris-thread-multi
+
+          Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+            Platform:
+              osname=darwin, osvers=7.2.0, archname=ppc-darwin-thread-multi
+ 
+        The failure is real. Placed the ommitted $ in front of gz_package
+        and try again.
+
   3.4 Adaptation data.
 
     This installation requires that the installation site has the Perl
@@ -812,12 +847,12 @@ Title Page
           http://www.softwarediamonds/packages/
           http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-        Right click on 'Tie-Gzip-0.04.tar.gz' and download to a temporary
+        Right click on 'Tie-Gzip-0.05.tar.gz' and download to a temporary
         installation directory. Enter the following where $make is 'nmake'
         for microsoft windows; otherwise 'make'.
 
-         gunzip Tie-Gzip-0.04.tar.gz
-         tar -xf Tie-Gzip-0.04.tar
+         gunzip Tie-Gzip-0.05.tar.gz
+         tar -xf Tie-Gzip-0.05.tar
          perl Makefile.PL
          $make test
          $make install

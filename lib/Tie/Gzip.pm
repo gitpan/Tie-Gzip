@@ -10,7 +10,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.13';
+$VERSION = '1.14';
 $DATE = '2004/04/15';
 $FILE = __FILE__;
 
@@ -651,6 +651,10 @@ in accordance with RFC 1951 and RFC 1952.
 
 =head1 DEMONSTRATION
 
+ #########
+ # perl Gzip.d
+ ###
+
  ~~~~~~ Demonstration overview ~~~~~
 
 Perl code begins with the prompt
@@ -684,12 +688,12 @@ follow on the next lines. For example,
  ''
 
  => ##################
- => # Tie::Gzip Verion $Tie::Gzip::VERSION
+ => # Tie::Gzip Version $Tie::Gzip::VERSION loaded
  => # 
  => ###
 
- => $Tie::Gzip::VERSION
- '1.12'
+ => $loaded = $fp->is_package_loaded($uut)
+ 1
 
  =>       sub gz_decompress
  =>      {
@@ -774,7 +778,7 @@ follow on the next lines. For example,
  =>     my $perl_gzip_success = 0;
  =>     my $os_gzip_success = 0;
  =>     if($gzip_opportunity) {
- =>         if(gz_package) {
+ =>         if($gz_package) {
  =>             $perl_gzip_success =1;
  =>             $os_gzip_success = 0;
  =>         }

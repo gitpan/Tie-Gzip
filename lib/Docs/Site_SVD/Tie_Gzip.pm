@@ -10,25 +10,25 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.04';
+$VERSION = '0.05';
 $DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.04 2004/04/15), 'revised 0.03'],
-    'MANIFEST' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
-    'Makefile.PL' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
-    'README' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
-    'lib/Tie/Gzip.pm' => [qw(1.13 2004/04/15), 'revised 1.12'],
-    't/Tie/Gzip.pm' => [qw(0.03 2004/04/15), 'revised 0.02'],
-    't/Tie/Gzip.t' => [qw(0.02 2004/04/15), 'revised 0.01'],
-    't/Tie/Gzip.d' => [qw(0.02 2004/04/15), 'revised 0.01'],
-    't/Tie/File/Package.pm' => [qw(1.16 2004/04/15), 'new'],
-    't/Tie/File/SmartNL.pm' => [qw(1.13 2004/04/15), 'new'],
-    't/Tie/Test/Tech.pm' => [qw(1.18 2004/04/15), 'new'],
-    't/Tie/Data/Secs2.pm' => [qw(1.16 2004/04/15), 'new'],
-    't/Tie/Data/SecsPack.pm' => [qw(0.02 2004/04/15), 'new'],
+    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.05 2004/04/15), 'revised 0.04'],
+    'MANIFEST' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
+    'Makefile.PL' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
+    'README' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
+    'lib/Tie/Gzip.pm' => [qw(1.14 2004/04/15), 'revised 1.13'],
+    't/Tie/Gzip.pm' => [qw(0.04 2004/04/15), 'revised 0.03'],
+    't/Tie/Gzip.t' => [qw(0.03 2004/04/15), 'revised 0.02'],
+    't/Tie/Gzip.d' => [qw(0.03 2004/04/15), 'revised 0.02'],
+    't/Tie/File/Package.pm' => [qw(1.16 2004/04/15), 'unchanged'],
+    't/Tie/File/SmartNL.pm' => [qw(1.13 2004/04/15), 'unchanged'],
+    't/Tie/Test/Tech.pm' => [qw(1.19 2004/04/15), 'revised 1.18'],
+    't/Tie/Data/Secs2.pm' => [qw(1.17 2004/04/15), 'unchanged'],
+    't/Tie/Data/SecsPack.pm' => [qw(0.02 2004/04/15), 'unchanged'],
     't/Tie/Gzip0.htm' => [qw(0.01 2003/09/12), 'unchanged'],
 
 );
@@ -56,9 +56,9 @@ use vars qw(%INVENTORY);
 
  Tie::Gzip - gzip with a small memory footprint
 
- Revision: B
+ Revision: D
 
- Version: 0.04
+ Version: 0.05
 
  Date: 2004/04/15
 
@@ -113,7 +113,7 @@ where the string '{}' is a placeholder for the I<filename>.
 
 =head2 1.3 Document overview.
 
-This document releases Tie::Gzip version 0.04
+This document releases Tie::Gzip version 0.05
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -128,7 +128,7 @@ system file specification.
 
 This document releases the file 
 
- Tie-Gzip-0.04.tar.gz
+ Tie-Gzip-0.05.tar.gz
 
 found at the following repository(s):
 
@@ -200,19 +200,19 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/Tie_Gzip.pm                                0.04    2004/04/15 revised 0.03
- MANIFEST                                                     0.04    2004/04/15 generated, replaces 0.03
- Makefile.PL                                                  0.04    2004/04/15 generated, replaces 0.03
- README                                                       0.04    2004/04/15 generated, replaces 0.03
- lib/Tie/Gzip.pm                                              1.13    2004/04/15 revised 1.12
- t/Tie/Gzip.pm                                                0.03    2004/04/15 revised 0.02
- t/Tie/Gzip.t                                                 0.02    2004/04/15 revised 0.01
- t/Tie/Gzip.d                                                 0.02    2004/04/15 revised 0.01
- t/Tie/File/Package.pm                                        1.16    2004/04/15 new
- t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 new
- t/Tie/Test/Tech.pm                                           1.18    2004/04/15 new
- t/Tie/Data/Secs2.pm                                          1.16    2004/04/15 new
- t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 new
+ lib/Docs/Site_SVD/Tie_Gzip.pm                                0.05    2004/04/15 revised 0.04
+ MANIFEST                                                     0.05    2004/04/15 generated, replaces 0.04
+ Makefile.PL                                                  0.05    2004/04/15 generated, replaces 0.04
+ README                                                       0.05    2004/04/15 generated, replaces 0.04
+ lib/Tie/Gzip.pm                                              1.14    2004/04/15 revised 1.13
+ t/Tie/Gzip.pm                                                0.04    2004/04/15 revised 0.03
+ t/Tie/Gzip.t                                                 0.03    2004/04/15 revised 0.02
+ t/Tie/Gzip.d                                                 0.03    2004/04/15 revised 0.02
+ t/Tie/File/Package.pm                                        1.16    2004/04/15 unchanged
+ t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 unchanged
+ t/Tie/Test/Tech.pm                                           1.19    2004/04/15 revised 1.18
+ t/Tie/Data/Secs2.pm                                          1.17    2004/04/15 unchanged
+ t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 unchanged
  t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
 
 
@@ -327,6 +327,38 @@ However, this does not work for Perl code outside the C<ok> and C<skip>
 subroutines.  Added test code to skip outside the C<ok> and C<skip> 
 subroutines.
 
+=item Tie::Gzip-0.05
+
+The distribution  C<Tie::Gzip-0.04> failed acrossed many systems. Very strange since 
+it passes as follows:
+
+ PASSED:
+ # Running under perl version 5.006001 for MSWin32
+ # Win32::BuildNumber 635
+
+ FAILED:
+
+  t/Tie/Gzip....Bareword "gz_package" not allowed while "strict subs" in use at t/Tie/Gzip.t line 265.
+
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 0) configuration:
+    Platform:
+      osname=linux, osvers=2.4.22-4tr, archname=i586-linux
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 1) configuration:
+    Platform:
+      osname=solaris, osvers=2.8, archname=sun4-solaris
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+    Platform:
+      osname=solaris, osvers=2.8, archname=sun4-solaris-thread-multi
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+    Platform:
+      osname=darwin, osvers=7.2.0, archname=ppc-darwin-thread-multi
+ 
+The failure is real. Placed the ommitted $ in front of gz_package and try again.
+
 =back
 
 =head2 3.4 Adaptation data.
@@ -365,13 +397,13 @@ Enter one of the following repositories in a web browser:
   http://www.softwarediamonds/packages/
   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-Right click on 'Tie-Gzip-0.04.tar.gz' and download to a temporary
+Right click on 'Tie-Gzip-0.05.tar.gz' and download to a temporary
 installation directory.
 Enter the following where $make is 'nmake' for microsoft
 windows; otherwise 'make'.
 
- gunzip Tie-Gzip-0.04.tar.gz
- tar -xf Tie-Gzip-0.04.tar
+ gunzip Tie-Gzip-0.05.tar.gz
+ tar -xf Tie-Gzip-0.05.tar
  perl Makefile.PL
  $make test
  $make install
@@ -462,11 +494,11 @@ extension for a Perl test script file
 __DATA__
 
 DISTNAME: Tie-Gzip^
-VERSION : 0.04^
+VERSION : 0.05^
 FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE: 0.03 ^
-REVISION: B ^
+PREVIOUS_RELEASE: 0.04 ^
+REVISION: D ^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
 ABSTRACT: gzip with a small memory footprint^
@@ -619,6 +651,38 @@ features to force the C<ok> and C<skip> to perform a skip.
 However, this does not work for Perl code outside the C<ok> and C<skip>
 subroutines.  Added test code to skip outside the C<ok> and C<skip> 
 subroutines.
+
+\=item Tie::Gzip-0.05
+
+The distribution  C<Tie::Gzip-0.04> failed acrossed many systems. Very strange since 
+it passes as follows:
+
+ PASSED:
+ # Running under perl version 5.006001 for MSWin32
+ # Win32::BuildNumber 635
+
+ FAILED:
+
+  t/Tie/Gzip....Bareword "gz_package" not allowed while "strict subs" in use at t/Tie/Gzip.t line 265.
+
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 0) configuration:
+    Platform:
+      osname=linux, osvers=2.4.22-4tr, archname=i586-linux
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 1) configuration:
+    Platform:
+      osname=solaris, osvers=2.8, archname=sun4-solaris
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+    Platform:
+      osname=solaris, osvers=2.8, archname=sun4-solaris-thread-multi
+
+  Summary of my perl5 (revision 5.0 version 8 subversion 3) configuration:
+    Platform:
+      osname=darwin, osvers=7.2.0, archname=ppc-darwin-thread-multi
+ 
+The failure is real. Placed the ommitted $ in front of gz_package and try again.
 
 \=back
 

@@ -7,7 +7,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '0.02';   # automatically generated file
+$VERSION = '0.03';   # automatically generated file
 $DATE = '2004/04/15';
 $FILE = __FILE__;
 
@@ -161,10 +161,10 @@ skip_tests( 1 ) unless ok(
 
 #  ok:  2
 
-ok(  $Tie::Gzip::VERSION, # actual results
-     $Tie::Gzip::VERSION, # expected results
+ok(  $loaded = $fp->is_package_loaded($uut), # actual results
+     1, # expected results
      "",
-     "Tie::Gzip Verion $Tie::Gzip::VERSION");
+     "Tie::Gzip Version $Tie::Gzip::VERSION loaded");
 
 #  ok:  3
 
@@ -255,7 +255,7 @@ ok(  $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # a
     my $perl_gzip_success = 0;
     my $os_gzip_success = 0;
     if($gzip_opportunity) {
-        if(gz_package) {
+        if($gz_package) {
             $perl_gzip_success =1;
             $os_gzip_success = 0;
         }
