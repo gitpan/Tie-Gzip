@@ -10,26 +10,26 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.05';
-$DATE = '2004/04/15';
+$VERSION = '0.06';
+$DATE = '2004/04/16';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.05 2004/04/15), 'revised 0.04'],
-    'MANIFEST' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
-    'Makefile.PL' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
-    'README' => [qw(0.05 2004/04/15), 'generated, replaces 0.04'],
-    'lib/Tie/Gzip.pm' => [qw(1.14 2004/04/15), 'revised 1.13'],
-    't/Tie/Gzip.pm' => [qw(0.04 2004/04/15), 'revised 0.03'],
-    't/Tie/Gzip.t' => [qw(0.03 2004/04/15), 'revised 0.02'],
-    't/Tie/Gzip.d' => [qw(0.03 2004/04/15), 'revised 0.02'],
-    't/Tie/File/Package.pm' => [qw(1.16 2004/04/15), 'unchanged'],
-    't/Tie/File/SmartNL.pm' => [qw(1.13 2004/04/15), 'unchanged'],
-    't/Tie/Test/Tech.pm' => [qw(1.19 2004/04/15), 'revised 1.18'],
-    't/Tie/Data/Secs2.pm' => [qw(1.17 2004/04/15), 'unchanged'],
-    't/Tie/Data/SecsPack.pm' => [qw(0.02 2004/04/15), 'unchanged'],
-    't/Tie/Gzip0.htm' => [qw(0.01 2003/09/12), 'unchanged'],
+    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.06 2004/04/16), 'revised 0.05'],
+    'MANIFEST' => [qw(0.06 2004/04/16), 'generated, replaces 0.05'],
+    'Makefile.PL' => [qw(0.06 2004/04/16), 'generated, replaces 0.05'],
+    'README' => [qw(0.06 2004/04/16), 'generated, replaces 0.05'],
+    'lib/Tie/Gzip.pm' => [qw(1.15 2004/04/16), 'revised 1.14'],
+    't/Tie/Gzip.pm' => [qw(0.05 2004/04/16), 'revised 0.04'],
+    't/Tie/Gzip.t' => [qw(0.04 2004/04/16), 'revised 0.03'],
+    't/Tie/Gzip.d' => [qw(0.04 2004/04/16), 'revised 0.03'],
+    't/Tie/File/Package.pm' => [qw(1.16 2004/04/16), 'unchanged'],
+    't/Tie/File/SmartNL.pm' => [qw(1.13 2004/04/16), 'unchanged'],
+    't/Tie/Test/Tech.pm' => [qw(1.2 2004/04/16), 'revised 1.19'],
+    't/Tie/Data/Secs2.pm' => [qw(1.17 2004/04/16), 'revised 1.16'],
+    't/Tie/Data/SecsPack.pm' => [qw(0.02 2004/04/16), 'unchanged'],
+    't/Tie/gzip0.htm' => [qw(0.06 2004/04/16), 'unchanged'],
 
 );
 
@@ -56,11 +56,11 @@ use vars qw(%INVENTORY);
 
  Tie::Gzip - gzip with a small memory footprint
 
- Revision: D
+ Revision: E
 
- Version: 0.05
+ Version: 0.06
 
- Date: 2004/04/15
+ Date: 2004/04/16
 
  Prepared for: General Public 
 
@@ -113,7 +113,7 @@ where the string '{}' is a placeholder for the I<filename>.
 
 =head2 1.3 Document overview.
 
-This document releases Tie::Gzip version 0.05
+This document releases Tie::Gzip version 0.06
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -128,7 +128,7 @@ system file specification.
 
 This document releases the file 
 
- Tie-Gzip-0.05.tar.gz
+ Tie-Gzip-0.06.tar.gz
 
 found at the following repository(s):
 
@@ -200,20 +200,20 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/Tie_Gzip.pm                                0.05    2004/04/15 revised 0.04
- MANIFEST                                                     0.05    2004/04/15 generated, replaces 0.04
- Makefile.PL                                                  0.05    2004/04/15 generated, replaces 0.04
- README                                                       0.05    2004/04/15 generated, replaces 0.04
- lib/Tie/Gzip.pm                                              1.14    2004/04/15 revised 1.13
- t/Tie/Gzip.pm                                                0.04    2004/04/15 revised 0.03
- t/Tie/Gzip.t                                                 0.03    2004/04/15 revised 0.02
- t/Tie/Gzip.d                                                 0.03    2004/04/15 revised 0.02
- t/Tie/File/Package.pm                                        1.16    2004/04/15 unchanged
- t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 unchanged
- t/Tie/Test/Tech.pm                                           1.19    2004/04/15 revised 1.18
- t/Tie/Data/Secs2.pm                                          1.17    2004/04/15 unchanged
- t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 unchanged
- t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
+ lib/Docs/Site_SVD/Tie_Gzip.pm                                0.06    2004/04/16 revised 0.05
+ MANIFEST                                                     0.06    2004/04/16 generated, replaces 0.05
+ Makefile.PL                                                  0.06    2004/04/16 generated, replaces 0.05
+ README                                                       0.06    2004/04/16 generated, replaces 0.05
+ lib/Tie/Gzip.pm                                              1.15    2004/04/16 revised 1.14
+ t/Tie/Gzip.pm                                                0.05    2004/04/16 revised 0.04
+ t/Tie/Gzip.t                                                 0.04    2004/04/16 revised 0.03
+ t/Tie/Gzip.d                                                 0.04    2004/04/16 revised 0.03
+ t/Tie/File/Package.pm                                        1.16    2004/04/16 unchanged
+ t/Tie/File/SmartNL.pm                                        1.13    2004/04/16 unchanged
+ t/Tie/Test/Tech.pm                                           1.2     2004/04/16 revised 1.19
+ t/Tie/Data/Secs2.pm                                          1.17    2004/04/16 revised 1.16
+ t/Tie/Data/SecsPack.pm                                       0.02    2004/04/16 unchanged
+ t/Tie/gzip0.htm                                              0.06    2004/04/16 unchanged
 
 
 =head2 3.3 Changes
@@ -359,6 +359,26 @@ it passes as follows:
  
 The failure is real. Placed the ommitted $ in front of gz_package and try again.
 
+
+=item Tie::Gzip-0.06
+
+All the Unix machines are failing as follows: 
+
+ Use of uninitialized value in string eq at t/Tie/Gzip.t line 243.
+ # Cannot open <gzip0.htm
+ Use of uninitialized value in string eq at t/Tie/Gzip.t line 296.
+ # Cannot open <gzip0.htm
+ FAILED tests 9, 11
+        Failed 2/11 tests, 81.82% okay
+
+The reason is the the test script uses C<gzip0.htm> while the distribution file
+is t/Tie/Gzip0.htm. The difference in capitalition causes failures on operation
+system with case sensitive file specifitions.
+
+Change the distribution file to C<t/Tie/gzip0.htm>. Added steps to the beginning
+of the test scripts to ensure that C<t/Tie/Gzip.t> can read C<gzip0.htm> so that
+do not have to spent time analyzing what went work. 
+ 
 =back
 
 =head2 3.4 Adaptation data.
@@ -397,13 +417,13 @@ Enter one of the following repositories in a web browser:
   http://www.softwarediamonds/packages/
   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-Right click on 'Tie-Gzip-0.05.tar.gz' and download to a temporary
+Right click on 'Tie-Gzip-0.06.tar.gz' and download to a temporary
 installation directory.
 Enter the following where $make is 'nmake' for microsoft
 windows; otherwise 'make'.
 
- gunzip Tie-Gzip-0.05.tar.gz
- tar -xf Tie-Gzip-0.05.tar
+ gunzip Tie-Gzip-0.06.tar.gz
+ tar -xf Tie-Gzip-0.06.tar
  perl Makefile.PL
  $make test
  $make install
@@ -494,11 +514,11 @@ extension for a Perl test script file
 __DATA__
 
 DISTNAME: Tie-Gzip^
-VERSION : 0.05^
+VERSION : 0.06^
 FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE: 0.04 ^
-REVISION: D ^
+PREVIOUS_RELEASE: 0.05 ^
+REVISION: E ^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
 ABSTRACT: gzip with a small memory footprint^
@@ -534,7 +554,7 @@ lib/Data/Secs2.pm => t/Tie/Data/Secs2.pm
 lib/Data/SecsPack.pm => t/Tie/Data/SecsPack.pm
 ^
 
-REPLACE: t/Tie/Gzip0.htm^
+REPLACE: t/Tie/gzip0.htm^
 
 PREREQ_PM:  ^
 README_PODS: lib/Tie/Gzip.pm^
@@ -684,8 +704,27 @@ it passes as follows:
  
 The failure is real. Placed the ommitted $ in front of gz_package and try again.
 
-\=back
 
+\=item Tie::Gzip-0.06
+
+All the Unix machines are failing as follows: 
+
+ Use of uninitialized value in string eq at t/Tie/Gzip.t line 243.
+ # Cannot open <gzip0.htm
+ Use of uninitialized value in string eq at t/Tie/Gzip.t line 296.
+ # Cannot open <gzip0.htm
+ FAILED tests 9, 11
+        Failed 2/11 tests, 81.82% okay
+
+The reason is the the test script uses C<gzip0.htm> while the distribution file
+is t/Tie/Gzip0.htm. The difference in capitalition causes failures on operation
+system with case sensitive file specifitions.
+
+Change the distribution file to C<t/Tie/gzip0.htm>. Added steps to the beginning
+of the test scripts to ensure that C<t/Tie/Gzip.t> can read C<gzip0.htm> so that
+do not have to spent time analyzing what went work. 
+ 
+\=back
 ^
 
 DOCUMENT_OVERVIEW:

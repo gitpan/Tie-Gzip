@@ -23,7 +23,7 @@ my $tests = join ' ',unix2os('t/Tie/Gzip.t');
 WriteMakefile(
     NAME => 'Tie::Gzip',
     DISTNAME => 'Tie-Gzip',
-    VERSION  => '0.05',
+    VERSION  => '0.06',
     dist     => {COMPRESS => 'gzip',
                 'gz' => 'gz'},
     test     => {TESTS => $tests},

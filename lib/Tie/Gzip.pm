@@ -10,8 +10,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.14';
-$DATE = '2004/04/15';
+$VERSION = '1.15';
+$DATE = '2004/04/16';
 $FILE = __FILE__;
 
 use File::Spec;
@@ -695,6 +695,15 @@ follow on the next lines. For example,
  => $loaded = $fp->is_package_loaded($uut)
  1
 
+ => ##################
+ => # Copy gzip0.htm to gzip1.htm.
+ => # 
+ => ###
+
+ => unlink 'gzip1.htm'
+ => copy('gzip0.htm', 'gzip1.htm')
+ '1'
+
  =>       sub gz_decompress
  =>      {
  =>          my ($gzip) = shift @_;
@@ -736,78 +745,33 @@ follow on the next lines. For example,
  =>     # Compress gzip1.htm with gzip software unit of opportunity
  =>     # Decompress gzip1.htm,gz with gzip software unit of opportunity
  =>     #
- =>     unlink 'gzip1.htm';
- =>     copy 'gzip0.htm', 'gzip1.htm';
  =>     tie *GZIP, 'Tie::Gzip';
  =>     my $tie_obj = tied *GZIP;
  =>     my $gz_package = $tie_obj->{gz_package};
  =>     my $gzip = \*GZIP;
  =>     
  =>     #####
- =>     # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
- =>     # are mandatory to ensure at least one gzip is available and works
+ =>     # Do not skip tests next compress and decompress tests if this expression fails.
+ =>     # Passing the next compress and decompress tests is mandatory to ensure at 
+ =>     # least one gzip is available and works
  =>     # 
  =>     my $gzip_opportunity= gz_compress( $gzip );
 
  => ##################
- => # Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists
+ => # Compress gzip1.htm with gzip of opportunity. Validate gzip1.htm.gz exists
  => # 
  => ###
 
- => -e 'gzip1.htm.gz'
+ => -f 'gzip1.htm.gz'
  '1'
 
  => ##################
- => # Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm
+ => # Decompress gzip1.htm.gz with gzip of opportunity. Validate gzip1.htm same as gzip0.htm
  => # 
  => ###
 
  => gz_decompress( $gzip )
- => $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
- '1'
-
- => ##################
- => # Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists
- => # 
- => ###
-
- =>     ##### 
- =>     # Compress gzip1.htm with site operating system GNU gzip
- =>     # Decompress gzip1.htm,gz with site GNU gzip
- =>     #
- =>     my $perl_gzip_success = 0;
- =>     my $os_gzip_success = 0;
- =>     if($gzip_opportunity) {
- =>         if($gz_package) {
- =>             $perl_gzip_success =1;
- =>             $os_gzip_success = 0;
- =>         }
- =>         else {
- =>             $perl_gzip_success =0;
- =>             $os_gzip_success = 1;
- =>         }
- =>     }
- =>     tie *GZIP, 'Tie::Gzip', {
- =>         read_pipe => 'gzip --decompress --stdout {}',
- =>         write_pipe => 'gzip --stdout > {}',
- =>     };
- =>     $gzip = \*GZIP;
- =>   
- =>     my $skip_flag = 0;
- =>     unless( gz_compress($gzip) ) {
- =>         $skip_flag = 1;
- =>         skip_tests( );
- =>     };
- => -e 'gzip1.htm.gz'
- '1'
-
- => ##################
- => # Decompress with site os GNU gzip. Validate gzip1.htm
- => # 
- => ###
-
- => gz_decompress( $gzip ) unless $skip_flag
- => $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
+ => $snl->fin('gzip1.htm') eq $snl->fin('gzip0.htm')
  '1'
 
  => unlink 'gzip1.htm'
@@ -838,31 +802,34 @@ However, since the site gzip used for the quality assurance test meets
 the RFC 1951 and RFC 1952, the chances are that the gzip outside
 the site is broken if C<Tie::Gzip> cannot decompress it.
 
-A test run example from C<Tie-Gzip-0.04.tar.gz> follows:
+=head2 Test Report
 
- ==> perl gzip.t
+ => perl Gzip.t
 
- 1..11
- # Running under perl version 5.006001 for MSWin32
- # Win32::BuildNumber 635
- # Current time local: Thu Apr 15 01:39:55 2004
- # Current time GMT:   Thu Apr 15 05:39:55 2004
- # Using Test.pm version 1.24
- # Test::Tech    : 1.18
- # Data::Secs2   : 1.16
- # =cut 
- ok 1 - UUT not loaded 
- ok 2 - Load UUT 
- ok 3 - Tie::Gzip Verion 1.12 
- ok 4 - Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists 
- ok 5 - Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm 
- ok 6 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists 
- ok 7 - Decompress with site os GNU gzip. Validate gzip1.htm 
- ok 8 - Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists. 
- ok 9 - Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm 
- ok 10 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists. 
- ok 11 - Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm. 
- # Passed : 11/11 100%
+1..13
+# Running under perl version 5.006001 for MSWin32
+# Win32::BuildNumber 635
+# Current time local: Fri Apr 16 15:59:27 2004
+# Current time GMT:   Fri Apr 16 19:59:27 2004
+# Using Test.pm version 1.24
+# Test::Tech    : 1.19
+# Data::Secs2   : 1.17
+# Data::SecsPack: 0.02
+# =cut 
+ok 1 - UUT not loaded 
+ok 2 - Load UUT 
+ok 3 - Tie::Gzip Version 1.14 loaded 
+ok 4 - Ensure gzip.t can access gzip0.htm 
+ok 5 - Copy gzip0.htm to gzip1.htm. 
+ok 6 - Compress gzip1.htm with gzip of opportunity. Validate gzip1.htm.gz exists 
+ok 7 - Decompress gzip1.htm.gz with gzip of opportunity. Validate gzip1.htm same as gzip0.htm 
+ok 8 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists 
+ok 9 - Decompress with site os GNU gzip. Validate gzip1.htm same as gzip0.htm 
+ok 10 - Compress gzip1.htm with Compress::Zlib. Validate gzip1.htm.gz exists. 
+ok 11 - Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm same as gzip0.htm 
+ok 12 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists. 
+ok 13 - Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm same as gzip0.htm. 
+# Passed : 13/13 100%
 
 =head2 Test Script Software and Operation
 

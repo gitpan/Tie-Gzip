@@ -164,6 +164,15 @@ DEMONSTRATION
      => $loaded = $fp->is_package_loaded($uut)
      1
 
+     => ##################
+     => # Copy gzip0.htm to gzip1.htm.
+     => # 
+     => ###
+
+     => unlink 'gzip1.htm'
+     => copy('gzip0.htm', 'gzip1.htm')
+     '1'
+
      =>       sub gz_decompress
      =>      {
      =>          my ($gzip) = shift @_;
@@ -205,78 +214,33 @@ DEMONSTRATION
      =>     # Compress gzip1.htm with gzip software unit of opportunity
      =>     # Decompress gzip1.htm,gz with gzip software unit of opportunity
      =>     #
-     =>     unlink 'gzip1.htm';
-     =>     copy 'gzip0.htm', 'gzip1.htm';
      =>     tie *GZIP, 'Tie::Gzip';
      =>     my $tie_obj = tied *GZIP;
      =>     my $gz_package = $tie_obj->{gz_package};
      =>     my $gzip = \*GZIP;
      =>     
      =>     #####
-     =>     # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
-     =>     # are mandatory to ensure at least one gzip is available and works
+     =>     # Do not skip tests next compress and decompress tests if this expression fails.
+     =>     # Passing the next compress and decompress tests is mandatory to ensure at 
+     =>     # least one gzip is available and works
      =>     # 
      =>     my $gzip_opportunity= gz_compress( $gzip );
 
      => ##################
-     => # Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists
+     => # Compress gzip1.htm with gzip of opportunity. Validate gzip1.htm.gz exists
      => # 
      => ###
 
-     => -e 'gzip1.htm.gz'
+     => -f 'gzip1.htm.gz'
      '1'
 
      => ##################
-     => # Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm
+     => # Decompress gzip1.htm.gz with gzip of opportunity. Validate gzip1.htm same as gzip0.htm
      => # 
      => ###
 
      => gz_decompress( $gzip )
-     => $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
-     '1'
-
-     => ##################
-     => # Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists
-     => # 
-     => ###
-
-     =>     ##### 
-     =>     # Compress gzip1.htm with site operating system GNU gzip
-     =>     # Decompress gzip1.htm,gz with site GNU gzip
-     =>     #
-     =>     my $perl_gzip_success = 0;
-     =>     my $os_gzip_success = 0;
-     =>     if($gzip_opportunity) {
-     =>         if($gz_package) {
-     =>             $perl_gzip_success =1;
-     =>             $os_gzip_success = 0;
-     =>         }
-     =>         else {
-     =>             $perl_gzip_success =0;
-     =>             $os_gzip_success = 1;
-     =>         }
-     =>     }
-     =>     tie *GZIP, 'Tie::Gzip', {
-     =>         read_pipe => 'gzip --decompress --stdout {}',
-     =>         write_pipe => 'gzip --stdout > {}',
-     =>     };
-     =>     $gzip = \*GZIP;
-     =>   
-     =>     my $skip_flag = 0;
-     =>     unless( gz_compress($gzip) ) {
-     =>         $skip_flag = 1;
-     =>         skip_tests( );
-     =>     };
-     => -e 'gzip1.htm.gz'
-     '1'
-
-     => ##################
-     => # Decompress with site os GNU gzip. Validate gzip1.htm
-     => # 
-     => ###
-
-     => gz_decompress( $gzip ) unless $skip_flag
-     => $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
+     => $snl->fin('gzip1.htm') eq $snl->fin('gzip0.htm')
      '1'
 
      => unlink 'gzip1.htm'
@@ -306,31 +270,27 @@ QUALITY ASSURANCE
     chances are that the gzip outside the site is broken if "Tie::Gzip"
     cannot decompress it.
 
-    A test run example from "Tie-Gzip-0.04.tar.gz" follows:
+  Test Report
 
-     ==> perl gzip.t
+     => perl Gzip.t
 
-     1..11
-     # Running under perl version 5.006001 for MSWin32
-     # Win32::BuildNumber 635
-     # Current time local: Thu Apr 15 01:39:55 2004
-     # Current time GMT:   Thu Apr 15 05:39:55 2004
-     # Using Test.pm version 1.24
-     # Test::Tech    : 1.18
-     # Data::Secs2   : 1.16
-     # =cut 
-     ok 1 - UUT not loaded 
-     ok 2 - Load UUT 
-     ok 3 - Tie::Gzip Verion 1.12 
-     ok 4 - Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists 
-     ok 5 - Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm 
-     ok 6 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists 
-     ok 7 - Decompress with site os GNU gzip. Validate gzip1.htm 
-     ok 8 - Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists. 
-     ok 9 - Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm 
-     ok 10 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists. 
-     ok 11 - Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm. 
-     # Passed : 11/11 100%
+    1..13 # Running under perl version 5.006001 for MSWin32 #
+    Win32::BuildNumber 635 # Current time local: Fri Apr 16 15:59:27 2004 #
+    Current time GMT: Fri Apr 16 19:59:27 2004 # Using Test.pm version 1.24
+    # Test::Tech : 1.19 # Data::Secs2 : 1.17 # Data::SecsPack: 0.02 # =cut
+    ok 1 - UUT not loaded ok 2 - Load UUT ok 3 - Tie::Gzip Version 1.14
+    loaded ok 4 - Ensure gzip.t can access gzip0.htm ok 5 - Copy gzip0.htm
+    to gzip1.htm. ok 6 - Compress gzip1.htm with gzip of opportunity.
+    Validate gzip1.htm.gz exists ok 7 - Decompress gzip1.htm.gz with gzip of
+    opportunity. Validate gzip1.htm same as gzip0.htm ok 8 - Compress
+    gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists ok 9 -
+    Decompress with site os GNU gzip. Validate gzip1.htm same as gzip0.htm
+    ok 10 - Compress gzip1.htm with Compress::Zlib. Validate gzip1.htm.gz
+    exists. ok 11 - Decompress gzip1.htm.gz with site OS GNU gzip. Validate
+    gzip1.htm same as gzip0.htm ok 12 - Compress gzip1.htm with site os GNU
+    gzip. Validate gzip1.htm.gz exists. ok 13 - Decompress gzip1.htm.gz with
+    Compress::Zlib. Validate gzip1.htm same as gzip0.htm. # Passed : 13/13
+    100%
 
   Test Script Software and Operation
 
@@ -551,11 +511,11 @@ Title Page
 
      Tie::Gzip - gzip with a small memory footprint
 
-     Revision: D
+     Revision: E
 
-     Version: 0.05
+     Version: 0.06
 
-     Date: 2004/04/15
+     Date: 2004/04/16
 
      Prepared for: General Public 
 
@@ -602,7 +562,7 @@ Title Page
 
   1.3 Document overview.
 
-    This document releases Tie::Gzip version 0.05 providing a description of
+    This document releases Tie::Gzip version 0.06 providing a description of
     the inventory, installation instructions and other information necessary
     to utilize and track this release.
 
@@ -614,7 +574,7 @@ Title Page
 
     This document releases the file
 
-     Tie-Gzip-0.05.tar.gz
+     Tie-Gzip-0.06.tar.gz
 
     found at the following repository(s):
 
@@ -664,20 +624,20 @@ Title Page
 
      file                                                         version date       comment
      ------------------------------------------------------------ ------- ---------- ------------------------
-     lib/Docs/Site_SVD/Tie_Gzip.pm                                0.05    2004/04/15 revised 0.04
-     MANIFEST                                                     0.05    2004/04/15 generated, replaces 0.04
-     Makefile.PL                                                  0.05    2004/04/15 generated, replaces 0.04
-     README                                                       0.05    2004/04/15 generated, replaces 0.04
-     lib/Tie/Gzip.pm                                              1.14    2004/04/15 revised 1.13
-     t/Tie/Gzip.pm                                                0.04    2004/04/15 revised 0.03
-     t/Tie/Gzip.t                                                 0.03    2004/04/15 revised 0.02
-     t/Tie/Gzip.d                                                 0.03    2004/04/15 revised 0.02
-     t/Tie/File/Package.pm                                        1.16    2004/04/15 unchanged
-     t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 unchanged
-     t/Tie/Test/Tech.pm                                           1.19    2004/04/15 revised 1.18
-     t/Tie/Data/Secs2.pm                                          1.17    2004/04/15 unchanged
-     t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 unchanged
-     t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
+     lib/Docs/Site_SVD/Tie_Gzip.pm                                0.06    2004/04/16 revised 0.05
+     MANIFEST                                                     0.06    2004/04/16 generated, replaces 0.05
+     Makefile.PL                                                  0.06    2004/04/16 generated, replaces 0.05
+     README                                                       0.06    2004/04/16 generated, replaces 0.05
+     lib/Tie/Gzip.pm                                              1.15    2004/04/16 revised 1.14
+     t/Tie/Gzip.pm                                                0.05    2004/04/16 revised 0.04
+     t/Tie/Gzip.t                                                 0.04    2004/04/16 revised 0.03
+     t/Tie/Gzip.d                                                 0.04    2004/04/16 revised 0.03
+     t/Tie/File/Package.pm                                        1.16    2004/04/16 unchanged
+     t/Tie/File/SmartNL.pm                                        1.13    2004/04/16 unchanged
+     t/Tie/Test/Tech.pm                                           1.2     2004/04/16 revised 1.19
+     t/Tie/Data/Secs2.pm                                          1.17    2004/04/16 revised 1.16
+     t/Tie/Data/SecsPack.pm                                       0.02    2004/04/16 unchanged
+     t/Tie/gzip0.htm                                              0.06    2004/04/16 unchanged
 
   3.3 Changes
 
@@ -815,6 +775,26 @@ Title Page
         The failure is real. Placed the ommitted $ in front of gz_package
         and try again.
 
+    Tie::Gzip-0.06
+        All the Unix machines are failing as follows:
+
+         Use of uninitialized value in string eq at t/Tie/Gzip.t line 243.
+         # Cannot open <gzip0.htm
+         Use of uninitialized value in string eq at t/Tie/Gzip.t line 296.
+         # Cannot open <gzip0.htm
+         FAILED tests 9, 11
+                Failed 2/11 tests, 81.82% okay
+
+        The reason is the the test script uses "gzip0.htm" while the
+        distribution file is t/Tie/Gzip0.htm. The difference in capitalition
+        causes failures on operation system with case sensitive file
+        specifitions.
+
+        Change the distribution file to "t/Tie/gzip0.htm". Added steps to
+        the beginning of the test scripts to ensure that "t/Tie/Gzip.t" can
+        read "gzip0.htm" so that do not have to spent time analyzing what
+        went work.
+
   3.4 Adaptation data.
 
     This installation requires that the installation site has the Perl
@@ -847,12 +827,12 @@ Title Page
           http://www.softwarediamonds/packages/
           http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-        Right click on 'Tie-Gzip-0.05.tar.gz' and download to a temporary
+        Right click on 'Tie-Gzip-0.06.tar.gz' and download to a temporary
         installation directory. Enter the following where $make is 'nmake'
         for microsoft windows; otherwise 'make'.
 
-         gunzip Tie-Gzip-0.05.tar.gz
-         tar -xf Tie-Gzip-0.05.tar
+         gunzip Tie-Gzip-0.06.tar.gz
+         tar -xf Tie-Gzip-0.06.tar
          perl Makefile.PL
          $make test
          $make install

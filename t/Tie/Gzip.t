@@ -7,8 +7,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '0.03';   # automatically generated file
-$DATE = '2004/04/15';
+$VERSION = '0.04';   # automatically generated file
+$DATE = '2004/04/16';
 $FILE = __FILE__;
 
 
@@ -78,8 +78,8 @@ BEGIN {
    # and the todo tests
    #
    require Test::Tech;
-   Test::Tech->import( qw(plan ok skip skip_tests tech_config finish) );
-   plan(tests => 11);
+   Test::Tech->import( qw(finish is_skip ok plan skip skip_tests tech_config) );
+   plan(tests => 13);
 
 }
 
@@ -169,6 +169,32 @@ ok(  $loaded = $fp->is_package_loaded($uut), # actual results
 #  ok:  3
 
    # Perl code from C:
+my $dm = 
+'cwd: ' . cwd() . "\n" .
+'FindBin: ' . $FindBin::Bin . "\n" .
+'$0: ' . $0 . "\n" .
+'abs $0: ' . File::Spec->rel2abs($0) . "\n";
+
+skip_tests( 1 ) unless ok(
+      -f 'gzip0.htm', # actual results
+      1, # expected results
+      "$dm",
+      "Ensure gzip.t can access gzip0.htm"); 
+
+#  ok:  4
+
+   # Perl code from C:
+unlink 'gzip1.htm';
+
+skip_tests( 1 ) unless ok(
+      copy('gzip0.htm', 'gzip1.htm'), # actual results
+      1, # expected results
+      "$!",
+      "Copy gzip0.htm to gzip1.htm."); 
+
+#  ok:  5
+
+   # Perl code from C:
       sub gz_decompress
      {
          my ($gzip) = shift @_;
@@ -210,25 +236,24 @@ ok(  $loaded = $fp->is_package_loaded($uut), # actual results
     # Compress gzip1.htm with gzip software unit of opportunity
     # Decompress gzip1.htm,gz with gzip software unit of opportunity
     #
-    unlink 'gzip1.htm';
-    copy 'gzip0.htm', 'gzip1.htm';
     tie *GZIP, 'Tie::Gzip';
     my $tie_obj = tied *GZIP;
     my $gz_package = $tie_obj->{gz_package};
     my $gzip = \*GZIP;
     
     #####
-    # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
-    # are mandatory to ensure at least one gzip is available and works
+    # Do not skip tests next compress and decompress tests if this expression fails.
+    # Passing the next compress and decompress tests is mandatory to ensure at 
+    # least one gzip is available and works
     # 
     my $gzip_opportunity= gz_compress( $gzip );
 
-ok(  -e 'gzip1.htm.gz', # actual results
+ok(  -f 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists");
+     "Compress gzip1.htm with gzip of opportunity. Validate gzip1.htm.gz exists");
 
-#  ok:  4
+#  ok:  6
 
    # Perl code from C:
 gz_decompress( $gzip );
@@ -240,48 +265,39 @@ gz_decompress( $gzip );
 # 
 
 #####
-ok(  $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # actual results
-     1, # expected results
-     "",
-     "Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm");
+skip_tests( 1 ) unless ok(
+      $snl->fin( 'gzip1.htm'), # actual results
+      $snl->fin( 'gzip0.htm'), # expected results
+      "",
+      "Decompress gzip1.htm.gz with gzip of opportunity. Validate gzip1.htm same as gzip0.htm"); 
 
-#  ok:  5
+#  ok:  7
 
    # Perl code from C:
     ##### 
     # Compress gzip1.htm with site operating system GNU gzip
     # Decompress gzip1.htm,gz with site GNU gzip
     #
-    my $perl_gzip_success = 0;
-    my $os_gzip_success = 0;
-    if($gzip_opportunity) {
-        if($gz_package) {
-            $perl_gzip_success =1;
-            $os_gzip_success = 0;
-        }
-        else {
-            $perl_gzip_success =0;
-            $os_gzip_success = 1;
-        }
-    }
     tie *GZIP, 'Tie::Gzip', {
         read_pipe => 'gzip --decompress --stdout {}',
         write_pipe => 'gzip --stdout > {}',
     };
     $gzip = \*GZIP;
   
-    my $skip_flag = 0;
-    unless( gz_compress($gzip) ) {
-        $skip_flag = 1;
-        skip_tests( );
+    my $skip_flag = is_skip();
+    unless($skip_flag) {
+        unless( gz_compress($gzip) ) {
+            $skip_flag = 1;
+            skip_tests( );
+        }
     };
 
-ok(  -e 'gzip1.htm.gz', # actual results
+ok(  -f 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
      "Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists");
 
-#  ok:  6
+#  ok:  8
 
    # Perl code from C:
 gz_decompress( $gzip ) unless $skip_flag;
@@ -293,20 +309,21 @@ gz_decompress( $gzip ) unless $skip_flag;
 # 
 
 #####
-ok(  $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # actual results
-     1, # expected results
-     "",
-     "Decompress with site os GNU gzip. Validate gzip1.htm");
+skip_tests( 1 ) unless ok(
+      $skip_flag ? '' : $snl->fin( 'gzip1.htm'), # actual results
+      $skip_flag ? '' : $snl->fin( 'gzip0.htm'), # expected results
+      "",
+      "Decompress with site os GNU gzip. Validate gzip1.htm same as gzip0.htm"); 
 
-#  ok:  7
+#  ok:  9
 
    # Perl code from C:
     ######
     # Compress gzip1.htm with Compress::Zlib
     # Decompress gzip1.htm,gz with site GNU gzip
     #
-    $skip_flag = !($gz_package && $os_gzip_success && $perl_gzip_success);
-    skip_tests( $skip_flag );
+    $skip_flag = $gz_package ? 0 : 1;
+    skip_tests( ) if $skip_flag;
     unless($skip_flag) {
         tie *GZIP, 'Tie::Gzip', {
             read_pipe => 'gzip --decompress --stdout {}',
@@ -315,12 +332,12 @@ ok(  $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # ac
         gz_compress( $gzip );
     };
 
-ok(  -e 'gzip1.htm.gz', # actual results
+ok(  -f 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists.");
+     "Compress gzip1.htm with Compress::Zlib. Validate gzip1.htm.gz exists.");
 
-#  ok:  8
+#  ok:  10
 
    # Perl code from C:
 gz_decompress( $gzip ) unless $skip_flag;
@@ -332,12 +349,12 @@ gz_decompress( $gzip ) unless $skip_flag;
 # 
 
 #####
-ok(  $snl->fin( 'gzip1.htm'), # actual results
-     $snl->fin( 'gzip0.htm'), # expected results
+ok(  $skip_flag ? '' : $snl->fin( 'gzip1.htm'), # actual results
+     $skip_flag ? '' : $snl->fin( 'gzip0.htm'), # expected results
      "",
-     "Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm");
+     "Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm same as gzip0.htm");
 
-#  ok:  9
+#  ok:  11
 
    # Perl code from C:
     ######
@@ -352,12 +369,12 @@ ok(  $snl->fin( 'gzip1.htm'), # actual results
         skip_tests( ) unless gz_compress( $gzip );
     };
 
-ok(  -e 'gzip1.htm.gz', # actual results
+ok(  -f 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
      "Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists.");
 
-#  ok:  10
+#  ok:  12
 
    # Perl code from C:
 gz_decompress( $gzip ) unless $skip_flag;
@@ -369,12 +386,12 @@ gz_decompress( $gzip ) unless $skip_flag;
 # 
 
 #####
-ok(  $snl->fin( 'gzip1.htm'), # actual results
-     $snl->fin( 'gzip0.htm'), # expected results
+ok(  $skip_flag ? '' : $snl->fin( 'gzip1.htm'), # actual results
+     $skip_flag ? '' : $snl->fin( 'gzip0.htm'), # expected results
      "",
-     "Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm.");
+     "Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm same as gzip0.htm.");
 
-#  ok:  11
+#  ok:  13
 
    # Perl code from C:
 unlink 'gzip1.htm';
