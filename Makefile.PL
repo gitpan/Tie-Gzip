@@ -23,7 +23,7 @@ my $tests = join ' ',unix2os('t/Tie/Gzip.t');
 WriteMakefile(
     NAME => 'Tie::Gzip',
     DISTNAME => 'Tie-Gzip',
-    VERSION  => '0.03',
+    VERSION  => '0.04',
     dist     => {COMPRESS => 'gzip',
                 'gz' => 'gz'},
     test     => {TESTS => $tests},
@@ -32,7 +32,7 @@ WriteMakefile(
 
     ($] >= 5.005 ?     
         (AUTHOR    => 'SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>',
-        ABSTRACT  => 'gzip and gunzip with a small memory footprint', ) : ()),
+        ABSTRACT  => 'gzip with a small memory footprint', ) : ()),
 );
 
 

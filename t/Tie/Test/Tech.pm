@@ -4,7 +4,7 @@
 #
 package  Test::Tech;
 
-use 5.001;
+# use 5.001;
 use strict;
 use warnings;
 use warnings::register;
@@ -13,20 +13,19 @@ use Test ();   # do not import the "Test" subroutines
 use Data::Secs2 qw(stringify);
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.15';
-$DATE = '2004/04/01';
+$VERSION = '1.18';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use vars qw(@ISA @EXPORT_OK);
 require Exporter;
 @ISA=('Exporter');
-@EXPORT_OK = qw(&tech_config &plan &ok &skip &skip_tests &stringify &demo);
+@EXPORT_OK = qw(tech_config plan ok skip skip_tests stringify demo finish);
 
 #######
-#
-# Keep all data hidden in a local hash
+# For subroutine interface keep all data hidden in a local hash of private object
 # 
-my $tech_p = new Test::Tech;  # quasi objectify by using new Test::Tech instead of %tech
+my $tech_p = new Test::Tech;
 
 sub new
 {
@@ -48,7 +47,6 @@ sub new
    $self->{Test}->{TESTOUT} = \$Test::TESTOUT;
    $self->{Test}->{TestLevel} = \$Test::TestLevel;
    $self->{Test}->{ONFAIL} = \$Test::ONFAIL;
-   $self->{Test}->{planned} = \$Test::planned;
    $self->{Test}->{TESTERR} = \$Test::TESTERR if defined $Test::TESTERR; 
 
    $self->{TestDefault}->{TESTOUT} = $Test::TESTOUT;
@@ -60,34 +58,102 @@ sub new
    # Test::Tech object data
    #
    $self->{Skip_Tests} = 0;
+   $self->{test_name} = '';
+   $self->{passed} = [];
+   $self->{failed} = [];
+   $self->{skipped} = [];
+   $self->{missed} = [];
+   $self->{unplanned} = [];
+   $self->{last_test} = 0;
+   $self->{num_tests} = 0;
+   $self->{highest_test} = 0;
+
+   ######
+   # Redirect Test:: output thru Test::Tech::Output handle
+   #   unless been redirected and never restored!!
+   #
+   unless( \*TESTOUT eq $Test::TESTOUT ) {
+       $self->{test_out} = $Test::TESTOUT;
+       tie *TESTOUT, 'Test::Tech::Output', $Test::TESTOUT, $self;
+       $Test::TESTOUT = \*TESTOUT;
+   }
 
    $self;
+
 }
  
 
 #####
 # Restore the Test:: moduel variable back to where they were when found
 #
-sub DESTROY
+sub finish
 {
-   my $self = UNIVERSAL::isa($_[0],__PACKAGE__) ? shift @_ : $tech_p;
+    my $self = UNIVERSAL::isa($_[0],__PACKAGE__) ? shift @_ : $tech_p;
 
-   return unless defined $self;
+    return undef unless $Test::TESTOUT;  # if IO::Handle object may be destroyed and undef
+    return undef unless $Test::planned;  
 
-   $Test::TESTOUT = $self->{TestDefault}->{TESTOUT};
-   $Test::TestLevel = $self->{TestDefault}->{TestLevel};
-   $Test::ONFAIL = $self->{TestDefault}->{ONFAIL};
-   $Test::TESTERR = $self->{TestDefault}->{TESTERR} if defined $Test::TESTERR;
+    my $missing = $self->{last_test} + 1;
+    $self->{test_name} = '';
+    while($missing <= $self->{num_tests}) {
+        if($self->{Skip_Diag}) {
+            print $Test::TESTOUT "not ok $missing Not Performed # missing\n";
+            if( 1.20 < $Test::VERSION ) {
+                print $Test::TESTERR "# Test $missing got:\n";
+                print $Test::TESTERR "# Expected: (Missing. $self->{Skip_Diag})\n";
+            }
+            else {
+                print $Test::TESTOUT "# Test $missing got:\n";
+                print $Test::TESTOUT "# Expected: (Missing. $self->{Skip_Diag})\n";
+            }
+        }
+        push @{$self->{missed}}, $missing++;
+    }
+
+    $Test::TESTOUT = $self->{TestDefault}->{TESTOUT};
+    $Test::TestLevel = $self->{TestDefault}->{TestLevel};
+    $Test::ONFAIL = $self->{TestDefault}->{ONFAIL};
+    $Test::TESTERR = $self->{TestDefault}->{TESTERR} if defined $Test::TESTERR;
+
+    if(@{$self->{unplanned}}) {
+        print $Test::TESTOUT '# Extra  : ' . (join ' ', @{$self->{unplanned}}) . "\n";
+    }
+    if(@{$self->{missed}}) {
+        print $Test::TESTOUT '# Missing: ' . (join ' ', @{$self->{missed}}) . "\n";
+    }
+    if(@{$self->{skipped}}) {
+        print $Test::TESTOUT '# Skipped: ' . (join ' ', @{$self->{skipped}}) . "\n";
+    }
+    if(@{$self->{failed}}) {
+        print $Test::TESTOUT '# Failed : ' . (join ' ', @{$self->{failed}}) . "\n";
+    }
+    use integer;
+
+    my $total = $self->{num_tests} if $self->{num_tests};
+    $total = $self->{last_test} if $self->{last_test} && $self->{num_tests} < $self->{last_test};
+    $total -= @{$self->{skipped}};
+
+    my $passed =  @{$self->{passed}};
+    print $Test::TESTOUT '# Passed : ' . "$passed/$total " . ((100*$passed)/$total) . "%\n" if $total;
+
+    ######
+    # Only once per test run.
+    #
+    $Test::planned = 0;
+
+    return ($total,$self->{unplanned},$self->{missed},$self->{skipped},$self->{passed},$self->{failed})
+          if wantarray;
+
+    $passed ? 1 : 0;
+}
+
+# *finish = &*Test::Tech::DESTORY; # DESTORY is alias for finish
+sub DESTORY 
+{
+    finish( @_ );
 
 }
 
-sub finish 
-{
-    Test::Tech::DESTROY( @_ );
-
-}
-
-# *finish = &*Test::Tech::DESTORY; # finish is alias for DESTORY
 
 
 ######
@@ -154,18 +220,45 @@ sub ok
    #
    my $self = (UNIVERSAL::isa($_[0],__PACKAGE__) && ref($_[0])) ? shift @_ : $tech_p;
 
-   my ($actual_result, $expected_result, $diagnostic, $name) = @_;
+   my ($diagnostic,$name) = ('',''); 
+   my $options = {};
+   if( ref($_[-1]) ) {
+       $options = pop @_;
+       if( ref($options) eq 'ARRAY') {
+           my %options = @$options;
+           $options = \%options;
+       }
+       elsif( ref($options) ne 'HASH') {
+           $options = {};
+       }
+   }
+   $diagnostic = $options->{diagnostic} if defined $options->{diagnostic};
+   $name = $options->{name} if defined $options->{name};
+
+   my ($actual_result, $expected_result, $diagnostic_in, $name_in) = @_;
+
 
    ######### 
    # Fill in undefined inputs
    #
-   $name = '' unless defined $name; 
-   $diagnostic = $name unless $diagnostic;
+   $diagnostic = $diagnostic_in if defined $diagnostic_in;
+   $name = $name_in if defined $name_in;
+   $diagnostic = $name unless defined $diagnostic;
+   $self->{test_name} = $name;  # used by tied handle Test::Tech::Output
 
-   print $Test::TESTOUT "# $name\n" if $name;
    if($self->{Skip_Tests}) { # skip rest of tests switch
-       print $Test::TESTOUT "# Test invalid because of previous failure.\n";
        &Test::skip( 1, 0, '');
+       if($self->{Skip_Diag}) {
+           my $test_number = $Test::ntest - 1;
+           if( 1.20 < $Test::VERSION ) {
+               print $Test::TESTERR "# Test $test_number got:\n";
+               print $Test::TESTERR "# Expected: ($self->{Skip_Diag})\n";
+           }
+           else {
+               print $Test::TESTOUT "# Test $test_number got:\n";
+               print $Test::TESTOUT "# Expected: ($self->{Skip_Diag})\n";
+           }
+       }
        return 1; 
    }
 
@@ -185,13 +278,41 @@ sub skip
    #
    my $self = (UNIVERSAL::isa($_[0],__PACKAGE__) && ref($_[0])) ? shift @_ : $tech_p;
 
-   my ($mod, $actual_result, $expected_result, $diagnostic, $name) = @_;
+   my ($diagnostic,$name) = ('',''); 
+   my $options = {};
+   if( ref($_[-1]) ) {
+       $options = pop @_;
+       if( ref($options) eq 'ARRAY') {
+           my %options = @$options;
+           $options = \%options;
+       }
+       elsif( ref($options) ne 'HASH') {
+           $options = {};
+       }
+   }
+   $diagnostic = $options->{diagnostic} if $options->{diagnostic};
+   $name = $options->{name} if $options->{name};
 
-   print $Test::TESTOUT "# $name\n" if $name;
+   my ($mod, $actual_result, $expected_result, $diagnostic_in, $name_in) = @_;
+
+   $diagnostic = $diagnostic_in if defined $diagnostic_in;
+   $name = $name_in if defined $name_in;
+   $diagnostic = $name unless defined $diagnostic;
+   $self->{test_name} = $name;  # used by tied handle Test::Tech::Output
 
    if($self->{Skip_Tests}) {  # skip rest of tests switch
-       print $Test::TESTOUT "# Test invalid because of previous failure.\n";
        &Test::skip( 1, 0, '');
+       if($self->{Skip_Diag}) {
+           my $test_number = $Test::ntest - 1;
+           if( 1.20 < $Test::VERSION ) {
+               print $Test::TESTERR "# Test $test_number got:\n";
+               print $Test::TESTERR "# Expected: ($self->{Skip_Diag})\n";
+           }
+           else {
+               print $Test::TESTOUT "# Test $test_number got:\n";
+               print $Test::TESTOUT "# Expected: ($self->{Skip_Diag})\n";
+           }
+       }
        return 1; 
    }
   
@@ -211,14 +332,12 @@ sub skip_tests
    #
    my $self = (UNIVERSAL::isa($_[0],__PACKAGE__) && ref($_[0])) ? shift @_ : $tech_p;
 
-   my ($value) =  @_;
+   my ($value,$diagnostic) =  @_;
    my $result = $self->{Skip_Tests};
-   if (defined $value) {
-       $self->{Skip_Tests} = $value;
-   }
-   else {
-       $self->{Skip_Tests} = 1;
-   }
+   $value = 1 unless (defined $value);
+   $self->{Skip_Tests} = $value;
+   $diagnostic = 'Test not performed because of previous failure.' unless defined $diagnostic;
+   $self->{Skip_Diag} = $value ? $diagnostic : '';
    $result;   
 }
 
@@ -281,7 +400,7 @@ sub tech_config
    if( ref($current_value) eq 'SCALAR') {
        $current_value = $$current_value;
    }
-   if (defined $value && $key ne 'ntest' && $key ne 'planned') {
+   if (defined $value && $key ne 'ntest') {
        if( ref($value) eq 'SCALAR' ) {
            ${$key_p->{$key}} = $$value;
        }
@@ -346,6 +465,84 @@ sub demo
 
 }
 
+
+########
+# Handle Tie to catch the Test module output
+# so that it may be modified.
+#
+package Test::Tech::Output;
+use Tie::Handle;
+use vars qw(@ISA);
+@ISA=('Tie::Handle');
+
+#####
+# Tie 
+#
+sub TIEHANDLE
+{
+     my($class, $test_handle, $tech) = @_;
+     $class = ref($class) if ref($class); 
+     bless {test_out => $test_handle, tech => $tech}, $class;
+}
+
+
+#####
+#  Print out the test output
+#
+sub PRINT
+{
+    my $self = shift;   
+    my $buf = join(defined $, ? $, : '',@_);
+    $buf .= $\ if defined $\;
+    my $test_name = $self->{tech}->{test_name};
+    $buf =~ s/(ok \d+)/$1 - $test_name /g if($test_name);
+    $self->stats($buf);
+    my $handle = $self->{test_out};
+    print $handle $buf;
+}
+
+#####
+# 
+#
+sub PRINTF
+{
+    my $self = shift;   
+    $self->PRINT (sprintf(shift,@_));
+}
+
+sub stats
+{
+    my ($self,$buf) = @_;
+    #####
+    # Stats
+    my $tech = $self->{tech};
+    my $test_num;
+    if($buf =~ /^\s*(not ok|ok)\s*(\d+)/) {
+        $test_num = $2;
+    }
+    if($test_num) {
+        if( $tech->{num_tests} < $test_num) {
+            push @{$tech->{unplanned}},$test_num;
+        }
+        if($tech->{last_test} + 1 != $test_num) {
+            push @{$tech->{missing}},$test_num;
+        }
+        $tech->{last_test} = $test_num;
+    }
+    if($buf =~ /^\d+\.\.(\d+)/) {
+        $tech->{num_tests} = $1;
+    }
+    elsif ($buf =~ /^\s*ok\s*(\d+).*?\#\s*skip/i) {
+        push @{$tech->{skipped}},$1;
+    }
+    elsif ($buf =~ /^\s*not ok\s*(\d+)/i) { 
+       push @{$tech->{failed}},$1;
+    }
+    elsif ($buf =~ /^\s*ok\s*(\d+)/i) {
+       push @{$tech->{passed}},$1;
+    }
+}
+
 1
 
 __END__
@@ -367,75 +564,69 @@ Test::Tech - adds skip_tests and test data structures capabilities to the "Test"
 
  $success = plan(@args);
 
- $test_ok = ok($actual_results, $expected_results, $diagnostic, $test_name);
- $test_ok = skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name);
+ $test_ok = ok($actual_results, $expected_results, [@options]);
+ $test_ok = ok($actual_results, $expected_results, {@options});
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, [@options]);
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, {@options});
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, $test_name, [@options]);
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, $test_name, {@options});
 
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, [@options]);
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, {@options});
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, $diagnostic, [@options]);
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, $diagnostic, {@options});
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name, [@options]);
+ $test_ok = skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name, {@options});
+
+ $state = skip_tests( $on_off, $skip_diagnostic);
  $state = skip_tests( $on_off );
  $state = skip_tests( );
 
- $string = stringify( $var ); # imported from Data::Secs2
+ $string = stringify( $var, @options); # imported from Data::Secs2
+ $string = $tech->stringify($var, [@options]);
+ $string = $tech->stringify($var, {@options});
 
- finish( );
+ (@stats) = finish( );
+ $num_passed = finish( );
 
  demo($quoted_expression, @expression)
 
- ###### 
- # Test::Tech methods inherited by another Class
- #
- use Test::Tech;
- use vars qw(@ISA);
- @ISA = qw(Test::Tech);
- 
- $new_value    = __PACKAGE__->tech_config( $key, $old_value);
-
- $success = __PACKAGE__->plan(@args);
-
- $test_ok = __PACKAGE__->ok($actual_results, $expected_results, $diagnostic, $test_name);
- $test_ok = __PACKAGE__->skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name);
-
- $state = __PACKAGE__->skip_tests( $on_off );
- $state = __PACKAGE__->skip_tests( );
-
- $string = __PACKAGE__->stringify( $var ); 
-
- __PACKAGE__->finish( );
-
- __PACKAGE__->demo($quoted_expression, @expression)
-
- ###### 
- # Class Interface
- #
- use Test::Tech;
- 
- $new_value    = Test::Tech->tech_config( $key, $old_value);
-
- $success = Test::Tech->plan(@args);
-
- $test_ok = Test::Tech->ok($actual_results, $expected_results, $diagnostic, $test_name);
- $test_ok = Test::Tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name);
-
- $state = Test::Tech->skip_tests( $on_off );
- $state = Test::Tech->skip_tests( );
-
- Test::Tech->finish( );
-
- Test::Tech->demo($quoted_expression, @expression)
 
  #####
  # Object Interface
  # 
  $tech = new Test::Tech;
 
- $test_ok = $tech->ok($actual_results, $expected_results, $diagnostic, $test_name);
- $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name);
+ $test_ok = $tech->ok($actual_results, $expected_results, [@options]);
+ $test_ok = $tech->ok($actual_results, $expected_results, {@options]};
+ $test_ok = $tech->ok($actual_results, $expected_results, $diagnostic, [@options]);
+ $test_ok = $tech->ok($actual_results, $expected_results, $diagnostic, {@options]};
+ $test_ok = $tech->ok($actual_results, $expected_results, $diagnostic, $test_name, [@options]);
+ $test_ok = $tech->ok($actual_results, $expected_results, $diagnostic, $test_name, {@options]};
 
- $state  = $tech->skip_tests( $on_off );
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, [@options]);
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, {@options});
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, [@options]);
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, {@options});
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name, [@options]);
+ $test_ok = $tech->skip($skip_test, $actual_results,  $expected_results, $diagnostic, $test_name, {@options});
+
  $state  = $tech->skip_tests( );
+ $state  = $tech->skip_tests( $on_off );
+ $state = skip_tests( $on_off, $skip_diagnostic );
 
- $new_value = $tech->tech_config( $key, $old_value);
+ $string = $tech->stringify($var); # imported from Data::Secs2
+ $string = $tech->stringify($var, @options); 
+ $string = $tech->stringify($var, [@options]);
+ $string = $tech->stringify($var, {@options});
 
- $tech->finish();
- 
+ $new_value = $tech->tech_config($key, $old_value);
+
+ (@stats) = $tech->finish( );
+ $num_passed = $tech->finish( );
+
+ $tech->demo($quoted_expression, @expression)
+
 =head1 DESCRIPTION
 
 The "Test::Tech" module extends the capabilities of the "Test" module.
@@ -466,11 +657,18 @@ the "Test" module as follows:
 =item *
 
 Compare almost any data structure by passing variables
-through I<Data::Dumper> before making the comparision
+through the L<Data::Secs2::stringify() subroutine|Data::Secs2/stringify subroutine>
+before making the comparision
 
 =item *
 
-Method to skip the rest of the tests upon a critical failure
+Method to skip the rest of the tests, with a $dianostic input,
+upon a critical failure. 
+
+=item *
+
+Adds addition $name, [@option], {@option} inputs to the ok and skip subroutines.
+The $name input is print as  "ok $test_num - $name" or "not ok $test_num - $name".
 
 =item *
 
@@ -512,10 +710,16 @@ execute on a failure. For example,
 
 =head2 ok subroutine
 
- $test_ok = ok(\@actual_results, \@expected_results, $test_name);
- $test_ok = ok($actual_results, $expected_results, $test_name);
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, $test_name, [@options]);
+ $test_ok = ok($actual_results, $expected_results, $diagnostic, $test_name, {@options});
 
-The I<test> method is a cover function for the &Test::ok subroutine
+The $diagnostic, $test_name, [@options], and {@options} inputs are optional.
+The $actual_results and $expected_results inputs may be references to
+any type of data structures.  The @options is a hash input that will
+process the 'diagnostic' key the same as the $diagnostic input and the
+'name' key the same as the $test_name input.
+
+The I<ok> method is a cover function for the &Test::ok subroutine
 that extends the &Test::ok routine as follows:
 
 =over 4
@@ -523,14 +727,16 @@ that extends the &Test::ok routine as follows:
 =item *
 
 Prints out the I<$test_name> to provide an English identification
-of the test.
+of the test. The $test_name appears as either "ok $test_num - $name" or
+"not ok $test_num - $name".
 
 =item *
 
-The I<ok> subroutine passes the arrays from an array reference
-I<@actual_results> and I<@expectet_results> through &Data::Dumper::Dumper.
-The I<test> method then uses &Test::ok to compare the text results
-from &Data::Dumper::Dumper.
+The I<ok> subroutine passes referenced inputs
+I<$actual_results> and I<$expectet_results> through 
+L<Data::Secs2::stringify() subroutine|Data::Secs2/stringify subroutine>.
+The I<ok> method then uses &Test::ok to compare the text results
+from L<Data::Secs2::stringify() subroutine|Data::Secs2/stringify subroutine>.
 
 =item *
 
@@ -546,8 +752,14 @@ and skips the test completely.
 
 =head2 skip subroutine
 
- $test_ok = skip(\@actual_results, \@expected_results, $test_name);
- $test_ok = skip($actual_results, $expected_results, $test_name);
+ $test_ok = skip($actual_results, $expected_results, $diagnostic $test_name, [@options]);
+ $test_ok = skip($actual_results, $expected_results, $diagnostic $test_name, {@options});
+
+The $diagnostic, $test_name, [@options], and {@options} inputs are optional.
+The $actual_results and $expected_results inputs may be references to
+any type of data structures.  The @options is a hash input that will
+process the 'diagnostic' key the same as the $diagnostic input and the
+'name' key the same as the $test_name input.
 
 The I<skip> subroutine is a cover function for the &Test::skip subroutine
 that extends the &Test::skip the same as the 
@@ -567,23 +779,9 @@ I<ok> and the I<skip> methods to skip testing.
  $string = stringify( $var );
 
 The I<stringify> subroutine will stringify I<$var> using
-the "L<Data::Dumper|Data::Dumper>" module only if I<$var> is a reference;
+the "L<Data::Secs2::stringify subroutine|Data::Secs2/stringify subroutine>" 
+module only if I<$var> is a reference;
 otherwise, it leaves it unchanged.
-
-For numeric arrays, "L<Data::Dumper|Data::Dumper>" module will not
-stringify them the same for all Perls. The below Perl code will
-produce different results for different Perls
-
- $probe = 3;
- $actual = Dumper([0+$probe]);
-
-For Perl v5.6.1 MSWin32-x86-multi-thread, ActiveState build 631, binary,
-the results will be '[\'3\']'  
-while for Perl version 5.008 for solaris the results will be '[3]'. 
-
-This module will automatically, when loaded, probe the site Perl
-and will this statement and enter the results as 'string' or
-'number' in the I<Internal_Number> configuration variable.
 
 =head2 tech_config subroutine
 
@@ -598,7 +796,6 @@ below configuration variables
  Test.TESTOUT           $Test::TESTOUT     read write
  Test.TestLevel         $Test::TestLevel   read write
  Test.ONFAIL            $Test::ONFAIL      read write
- Test.planned           $Test::planned     read only
  Test.TESTERR           $Test::TESTERR     read write
  Skip_Tests             # boolean          read write
  
@@ -618,23 +815,77 @@ The variables for the top level 'Dumper' I<$dot_index> are
 established by "L<Data::Dumper|Data::Dumper>" module;
 for the top level 'Test', the "L<Test|Test>" module.
 
-=head2 finish subroutine/method
+=head2 finish subroutine
 
- finish();
+ (@stats) = $tech->finish( );
+ $num_passed = $tech->finish( );
 
-The 'finish' subroutine/method restores changes made
-to the 'Test' module module made by the 
-'tech_config' subroutine/method or directly.
+The C<finish()> subroutine/method restores changes made
+to the C<Test> module module made by the 
+C<tech_config> subroutine/method or directly.
 
-When the 'new' subroutine/method creates a 'Test::Tech'
-object, the Perl will automatically run the
-'finish' method when that object is destoried.
+When the C<new> subroutine/method creates a C<Test::Tech>
+object.
+Perl will automatically run the
+C<finish()> method when that object is destoried.
 
 Running the 'finish' method without a class or object,
 restores the 'Test' module to the values when
 the 'Test::Tech' module was loaded.
 
-=head2 demo subroutine/method
+When used in an array context
+the C<finish()> subroutine/method 
+returns the C<@stats> array.
+The C<@stats> array consists of the following:
+
+The C<finish()> subroutine resets the C<last_test> and
+to zero and will returns undef without
+performing any of the above. 
+The C<finish()> subroutine will not be active again
+until a new test run is start with  C<&Test::Tech::plan>
+and the first test performed by C<&Test::Tech::ok> or
+C<&Test::Tech::skip>.
+
+In a scalar contents, the C<finish()> subroutine/method outputs
+a 1 for sucess and 0 for failure.
+In an array context,
+the C<finish()> subroutine/method outputs C<@stats>
+array that consists of the following:
+
+=over 4
+
+=item 0
+
+number of tests
+
+This is calculated as the maximum of the tests planned
+and the highest test number. From the maximum, substract
+the skipped tests. In other words, the sum of the missed,
+passed and failed test steps.
+
+=item 1
+
+reference to the unplanned test steps
+
+=item 2
+
+reference to the missed test steps
+
+=item 3
+
+reference to the skipped test steps
+
+=item 4
+
+reference to the passed test steps
+
+=item 5
+
+reference to the failed test steps
+
+=back
+
+=head2 demo subroutine
 
  demo($quoted_expression, @expression)
 
@@ -684,194 +935,91 @@ follow on the next lines. For example,
  use strict;
  use warnings;
  use warnings::register;
-
  use vars qw($VERSION $DATE);
- $VERSION = '0.08';
- $DATE = '2003/09/15';
+ $VERSION = '0.12';
+ $DATE = '2004/04/13';
 
- use Cwd;
- use File::Spec;
-
- ######
- #
- # T:
- #
- # use a BEGIN block so we print our plan before Module Under Test is loaded
- #
  BEGIN {
-
-    use vars qw($t $__restore_dir__ @__restore_inc__);
-
-    ########
-    # Working directory is that of the script file
-    #
+    use FindBin;
+    use File::Spec;
+    use Cwd;
+    use vars qw( $__restore_dir__ );
     $__restore_dir__ = cwd();
-    my ($vol, $dirs) = File::Spec->splitpath(__FILE__);
+    my ($vol, $dirs) = File::Spec->splitpath($FindBin::Bin,'nofile');
     chdir $vol if $vol;
     chdir $dirs if $dirs;
-    ($vol, $dirs) = File::Spec->splitpath(cwd(), 'nofile'); # absolutify
+    use lib $FindBin::Bin;
 
-    #######
-    # Add the library of the unit under test (UUT) to @INC
-    # It will be found first because it is first in the include path
-    #
-    @__restore_inc__ = @INC;
-
-    ######
-    # Find root path of the t directory
-    #
-    my @updirs = File::Spec->splitdir( $dirs );
-    while(@updirs && $updirs[-1] ne 't' ) { 
-        chdir File::Spec->updir();
-        pop @updirs;
-    };
-    chdir File::Spec->updir();
-    my $lib_dir = cwd();
-
-    #####
-    # Add this to the include path. Thus modules that start with t::
-    # will be found.
-    # 
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;  # include the current test directory
-
-    #####
-    # Add lib to the include path so that modules under lib at the
-    # same level as t, will be found
-    #
-    $lib_dir = File::Spec->catdir( cwd(), 'lib' );
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;
-
-    #####
-    # Add tlib to the include path so that modules under tlib at the
-    # same level as t, will be found
-    #
-    $lib_dir = File::Spec->catdir( cwd(), 'tlib' );
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;
-    chdir $dirs if $dirs;
-
-    #######
     # Add the directory with "Test.pm" version 1.15 to the front of @INC
-    #
-    # Thus, load Test::Tech, will find Test.pm 1.15 first
-    #
+    # Thus, 'use Test;' in  Test::Tech, will find Test.pm 1.15 first
     unshift @INC, File::Spec->catdir ( cwd(), 'V001015'); 
 
-    ########
     # Create the test plan by supplying the number of tests
     # and the todo tests
-    #
     require Test::Tech;
-    Test::Tech->import( qw(plan ok skip skip_tests tech_config) );
+    Test::Tech->import( qw(plan ok skip skip_tests tech_config finish) );
     plan(tests => 8, todo => [4, 8]);
-
  }
 
  END {
-
-    #########
     # Restore working directory and @INC back to when enter script
-    #
-    @INC = @__restore_inc__;
+    @INC = @lib::ORIG_INC;
     chdir $__restore_dir__;
  }
-
- ########
- # Start a test with a new File::FileUtil
- #
- my $fu = 'File::FileUtil';
 
  my $x = 2;
  my $y = 3;
 
- #########
  #  ok:  1 - Using Test 1.15
- #
  ok( $Test::VERSION, '1.15', '', 'Test version');
 
- #########
- #  ok:  2 - Do not skip rest
- #
- skip_tests( 1 ) unless ok(
+ skip_tests( 1 ) unless ok( #  ok:  2 - Do not skip rest
      $x + $y, # actual results
      5, # expected results
      '', 'Pass test'); 
 
- #########
- #
  #  ok:  3
- #
- # R:
  #
  skip( 1, # condition to skip test   
        ($x*$y*2), # actual results
        6, # expected results
        '','Skipped tests');
 
- #######
- #  zyw feature
- #  Under development, i.e todo
- #
- #  ok:  4
- #
- # R:
- #
- ok( $x*$y*2, # actual results
-           6, # expected results
-           '','Todo Test that Fails');
- ####
- # 
- #  ok:  5
- #
- # R:
- #
- skip_tests(1) unless ok(
+ #  zyw featureUnder development, i.e todo
+ ok( #  ok:  4
+     $x*$y*2, # actual results
+     6, # expected results
+     '','Todo Test that Fails');
+
+ skip_tests(1) unless ok( #  ok:  5
      $x + $y, # actual results
      6, # expected results
      '','Failed test that skips the rest'); 
 
- ####
- #
- #  ok:  6
- #
- # R:
- #
- ok( $x + $y + $x, # actual results
-           9, # expected results
-           '', 'A test to skip');
+ ok( #  ok:  6
+     $x + $y + $x, # actual results
+     9, # expected results
+     '', 'A test to skip');
 
- ####
- # 
- #  ok:  7
- # 
- # R:
- #
- ok( $x + $y + $x + $y, # actual results
-           10, # expected results
-           '', 'A not skip to skip');
+ ok( #  ok:  7
+     $x + $y + $x + $y, # actual results
+     10, # expected results
+     '', 'A not skip to skip');
 
- ####
- # 
- #  ok:  8
- # 
- # R:
- #
  skip_tests(0);
- ok( $x*$y*2, # actual results
-           12, # expected results
-           '', 'Stop skipping tests. Todo Test that Passes');
+ ok( #  ok:  8
+     $x*$y*2, # actual results
+          12, # expected results
+          '', 'Stop skipping tests. Todo Test that Passes');
+
+ ok( #  ok:  9
+     $x * $y, # actual results
+     6, # expected results
+     {name => 'Unplanned pass test'}); 
+
+ finish(); # pick up stats
 
  __END__
-
- =head1 NAME
-
- techA1.t - test script for Test::Tech
-
- =head1 SYNOPSIS
-
-  techA1.t 
 
  =head1 COPYRIGHT
 
@@ -887,28 +1035,27 @@ follow on the next lines. For example,
  =>     $snl->fout('tech1.txt', $actual_results);
  => $s->scrub_probe($s->scrub_file_line($actual_results))
  '1..8 todo 4 8;
- # Test version
- ok 1
- # Pass test
- ok 2
- # Skipped tests
- ok 3 # skip
- # Todo Test that Fails
- not ok 4
+ ok 1 - Test version 
+ ok 2 - Pass test 
+ ok 3 - Skipped tests  # skip
+ not ok 4 - Todo Test that Fails 
  # Test 4 got: '12' (xxxx.t at line 000 *TODO*)
- #   Expected: '6' (Todo Test that Fails)
- # Failed test that skips the rest
- not ok 5
+ #   Expected: '6'
+ not ok 5 - Failed test that skips the rest 
  # Test 5 got: '5' (xxxx.t at line 000)
- #   Expected: '6' (Failed test that skips the rest)
- # A test to skip
- # Test invalid because of previous failure.
- ok 6 # skip
- # A not skip to skip
- # Test invalid because of previous failure.
- ok 7 # skip
- # Stop skipping tests. Todo Test that Passes
- ok 8 # (xxxx.t at line 000 TODO?!)
+ #   Expected: '6'
+ ok 6 - A test to skip  # skip
+ # Test 6 got:
+ # Expected: (Test not performed because of previous failure.)
+ ok 7 - A not skip to skip  # skip
+ # Test 7 got:
+ # Expected: (Test not performed because of previous failure.)
+ ok 8 - Stop skipping tests. Todo Test that Passes  # (xxxx.t at line 000 TODO?!)
+ ok 9 - Unplanned pass test 
+ # Extra  : 9
+ # Skipped: 3 6 7
+ # Failed : 4 5
+ # Passed : 4/6 66%
  '
 
  => $snl->fin('techC0.t')
@@ -921,135 +1068,60 @@ follow on the next lines. For example,
  use warnings::register;
 
  use vars qw($VERSION $DATE);
- $VERSION = '0.09';
- $DATE = '2003/09/18';
+ $VERSION = '0.13';
+ $DATE = '2004/04/13';
 
- use Cwd;
- use File::Spec;
-
- ######
- #
- # T:
- #
- # use a BEGIN block so we print our plan before Module Under Test is loaded
- #
- ######
- #
- # T:
- #
- # use a BEGIN block so we print our plan before Module Under Test is loaded
- #
- BEGIN { 
-    use vars qw($t $__restore_dir__ @__restore_inc__);
-
-    ########
-    # Working directory is that of the script file
-    #
+ BEGIN {
+    use FindBin;
+    use File::Spec;
+    use Cwd;
+    use vars qw( $__restore_dir__ );
     $__restore_dir__ = cwd();
-    my ($vol, $dirs) = File::Spec->splitpath(__FILE__);
+    my ($vol, $dirs) = File::Spec->splitpath($FindBin::Bin,'nofile');
     chdir $vol if $vol;
     chdir $dirs if $dirs;
-    ($vol, $dirs) = File::Spec->splitpath(cwd(), 'nofile'); # absolutify
+    use lib $FindBin::Bin;
 
-    #######
-    # Add the library of the unit under test (UUT) to @INC
-    # It will be found first because it is first in the include path
-    #
-    @__restore_inc__ = @INC;
+    # Add the directory with "Test.pm" version 1.24 to the front of @INC
+    # Thus, load Test::Tech, will find Test.pm 1.24 first
+    unshift @INC, File::Spec->catdir ( cwd(), 'V001024'); 
 
-    ######
-    # Find root path of the t directory
-    #
-    my @updirs = File::Spec->splitdir( $dirs );
-    while(@updirs && $updirs[-1] ne 't' ) { 
-        chdir File::Spec->updir();
-        pop @updirs;
-    };
-    chdir File::Spec->updir();
-    my $lib_dir = cwd();
-
-    #####
-    # Add this to the include path. Thus modules that start with t::
-    # will be found.
-    # 
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;  # include the current test directory
-
-    #####
-    # Add lib to the include path so that modules under lib at the
-    # same level as t, will be found
-    #
-    $lib_dir = File::Spec->catdir( cwd(), 'lib' );
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;
-
-    #####
-    # Add tlib to the include path so that modules under tlib at the
-    # same level as t, will be found
-    #
-    $lib_dir = File::Spec->catdir( cwd(), 'tlib' );
-    $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-    unshift @INC, $lib_dir;
-    chdir $dirs if $dirs;
-
-    ########
     # Create the test plan by supplying the number of tests
     # and the todo tests
-    #
     require Test::Tech;
-    Test::Tech->import( qw(plan ok skip skip_tests tech_config) );
+    Test::Tech->import( qw(plan ok skip skip_tests tech_config finish) );
     plan(tests => 2, todo => [1]);
 
  }
 
  END {
-
-    #########
     # Restore working directory and @INC back to when enter script
-    #
-    @INC = @__restore_inc__;
+    @INC = @lib::ORIG_INC;
     chdir $__restore_dir__;
  }
 
- ######
- #
- # Test 1.24 error goes to the STDERR
+ # 1.24 error goes to the STDERR
  # while 1.15 goes to STDOUT
- #
  # redirect STDERR to the STDOUT
- # 
  tech_config('Test.TESTERR', \*STDOUT);
 
  my $x = 2;
  my $y = 3;
 
- ########
- #  xy feature
- #  Under development, i.e todo
- #
- #  ok:  1
- #
- ok( [$x+$y,$y-$x], # actual results
+ #  xy feature Under development, i.e todo
+ ok( #  ok:  1
+     [$x+$y,$y-$x], # actual results
      [5,1], # expected results
      '', 'Todo test that passes');
 
- ########
- #
- #  ok:  2
- #
- ok( [$x+$y,$x*$y], # actual results
+ ok( #  ok:  2
+     [$x+$y,$x*$y], # actual results
      [6,5], # expected results
      '', 'Test that fails');
 
+ finish() # pick up stats
+
  __END__
-
- =head1 NAME
-
- techC0.t - test script for Test::Tech
-
- =head1 SYNOPSIS
-
-  techC0.t 
 
  =head1 COPYRIGHT
 
@@ -1065,41 +1137,66 @@ follow on the next lines. For example,
  =>     $snl->fout('tech1.txt', $actual_results);
  => $s->scrub_probe($s->scrub_file_line($actual_results))
  '1..2 todo 1;
- # Todo test that passes
- ok 1 # (xxxx.t at line 000 TODO?!)
- # Test that fails
- not ok 2
- # Test 2 got: 'L[4]
-   A[0] 
-   A[5] ARRAY
-   A[1] 5
-   A[1] 6
+ ok 1 - Todo test that passes  # (xxxx.t at line 000 TODO?!)
+ not ok 2 - Test that fails 
+ # Test 2 got: 'U1[1] 80
+ U1[2] 5 6
  ' (xxxx.t at line 000)
- #   Expected: 'L[4]
-   A[0] 
-   A[5] ARRAY
-   A[1] 6
-   A[1] 5
- ' (Test that fails)
+ #   Expected: 'U1[1] 80
+ U1[2] 6 5
+ '
+ # Failed : 2
+ # Passed : 1/2 50%
+ '
+
+ =>     $actual_results = `perl techE0.t`;
+ =>     $snl->fout('tech1.txt', $actual_results);
+ => $s->scrub_probe($s->scrub_file_line($actual_results))
+ '1..8 todo 4 8;
+ ok 1 - Test version 
+ ok 2 - Pass test 
+ ok 3 - Skipped tests  # skip
+ not ok 4 - Todo Test that Fails 
+ # Test 4 got: '12' (xxxx.t at line 000 *TODO*)
+ #   Expected: '6' (Should Fail)
+ not ok 5 - Failed test that skips the rest 
+ # Test 5 got: '5' (xxxx.t at line 000)
+ #   Expected: '6' (Should Turn on Skip Test)
+ ok 6 - A test to skip  # skip
+ # Test 6 got:
+ # Expected: (Skip test on)
+ not ok 7 Not Performed # missing
+ # Test 7 got:
+ # Expected: (Missing. Skip test on)
+ not ok 8 Not Performed # missing
+ # Test 8 got:
+ # Expected: (Missing. Skip test on)
+ # Missing: 7 8
+ # Skipped: 3 6
+ # Failed : 4 5 7 8
+ # Passed : 2/6 33%
  '
 
  => my $tech = new Test::Tech
- => $tech->tech_config('Test.TestLevel')
+ => $tech->tech_config('Test.ONFAIL')
  undef
 
- => $tech->tech_config('Test.TestLevel', 2)
+ => $tech->tech_config('Test.ONFAIL',0)
  undef
 
- => $tech->tech_config('Test.TestLevel')
- 2
+ => $tech->tech_config('Test.ONFAIL')
+ 0
 
- => $Test::TestLevel
- 2
+ => $Test::ONFAIL
+ 0
 
- => $tech->finish( )
- => $Test::TestLevel
- undef
+ =>      $tech->finish( );
+ =>      $Test::planned = 1;  # keep going
+ => $tech->tech_config('Test.ONFAIL')
+ 0
 
+ => unlink 'tech1.txt'
+ => unlink 'tech1.txt'
 
 =head1 QUALITY ASSURANCE
 

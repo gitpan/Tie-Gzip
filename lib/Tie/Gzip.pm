@@ -10,8 +10,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.12';
-$DATE = '2004/04/01';
+$VERSION = '1.13';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use File::Spec;
@@ -673,14 +673,28 @@ follow on the next lines. For example,
  =>     my $fp = 'File::Package';
  =>     my $snl = 'File::SmartNL';
  =>     my $loaded;
+
+ => ##################
+ => # Load UUT
+ => # 
+ => ###
+
  => my $errors = $fp->load_package($uut)
  => $errors
  ''
 
+ => ##################
+ => # Tie::Gzip Verion $Tie::Gzip::VERSION
+ => # 
+ => ###
+
+ => $Tie::Gzip::VERSION
+ '1.12'
+
  =>       sub gz_decompress
  =>      {
  =>          my ($gzip) = shift @_;
- =>          my $file = 'Gzip1.htm';
+ =>          my $file = 'gzip1.htm';
  =>  
  =>          return undef unless open($gzip, "< $file.gz");
 
@@ -690,7 +704,7 @@ follow on the next lines. For example,
  =>              }
  =>              close FILE;
  =>              close $gzip;
- =>              unlink 'Gzip1.htm.gz';
+ =>              unlink 'gzip1.htm.gz';
  =>              return 1;
  =>          }
 
@@ -701,7 +715,7 @@ follow on the next lines. For example,
  =>      sub gz_compress
  =>      {
  =>          my ($gzip) = shift @_;
- =>          my $file = 'Gzip1.htm';
+ =>          my $file = 'gzip1.htm';
  =>          return undef unless open($gzip, "> $file.gz");
  =>         
  =>          if( open(FILE, "< $file") ) {
@@ -715,47 +729,138 @@ follow on the next lines. For example,
  =>     }
 
  =>     #####
- =>     # Compress Gzip1.htm with gzip software unit of opportunity
- =>     # Decompress Gzip1.htm,gz with gzip software unit of opportunity
+ =>     # Compress gzip1.htm with gzip software unit of opportunity
+ =>     # Decompress gzip1.htm,gz with gzip software unit of opportunity
  =>     #
- =>     unlink 'Gzip1.htm';
- =>     copy 'Gzip0.htm', 'Gzip1.htm';
+ =>     unlink 'gzip1.htm';
+ =>     copy 'gzip0.htm', 'gzip1.htm';
  =>     tie *GZIP, 'Tie::Gzip';
  =>     my $tie_obj = tied *GZIP;
  =>     my $gz_package = $tie_obj->{gz_package};
  =>     my $gzip = \*GZIP;
- =>     my $success1 = 0;
- =>     skip_tests( ) unless gz_compress( $gzip );
- => -e 'Gzip1.htm.gz'
+ =>     
+ =>     #####
+ =>     # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
+ =>     # are mandatory to ensure at least one gzip is available and works
+ =>     # 
+ =>     my $gzip_opportunity= gz_compress( $gzip );
+
+ => ##################
+ => # Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists
+ => # 
+ => ###
+
+ => -e 'gzip1.htm.gz'
  '1'
+
+ => ##################
+ => # Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm
+ => # 
+ => ###
 
  => gz_decompress( $gzip )
- => $success1 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')
+ => $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
  '1'
 
+ => ##################
+ => # Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists
+ => # 
+ => ###
+
  =>     ##### 
- =>     # Compress Gzip1.htm with site GNU gzip
- =>     # Decompress Gzip1.htm,gz with site GNU gzip
+ =>     # Compress gzip1.htm with site operating system GNU gzip
+ =>     # Decompress gzip1.htm,gz with site GNU gzip
  =>     #
- =>     skip_tests 0;
+ =>     my $perl_gzip_success = 0;
+ =>     my $os_gzip_success = 0;
+ =>     if($gzip_opportunity) {
+ =>         if(gz_package) {
+ =>             $perl_gzip_success =1;
+ =>             $os_gzip_success = 0;
+ =>         }
+ =>         else {
+ =>             $perl_gzip_success =0;
+ =>             $os_gzip_success = 1;
+ =>         }
+ =>     }
  =>     tie *GZIP, 'Tie::Gzip', {
  =>         read_pipe => 'gzip --decompress --stdout {}',
  =>         write_pipe => 'gzip --stdout > {}',
  =>     };
  =>     $gzip = \*GZIP;
- =>     
- =>     my $success2 = 0;
- =>     skip_tests( ) unless gz_compress( $gzip );
- => -e 'Gzip1.htm.gz'
+ =>   
+ =>     my $skip_flag = 0;
+ =>     unless( gz_compress($gzip) ) {
+ =>         $skip_flag = 1;
+ =>         skip_tests( );
+ =>     };
+ => -e 'gzip1.htm.gz'
  '1'
 
- => gz_decompress( $gzip )
- => $success2 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')
+ => ##################
+ => # Decompress with site os GNU gzip. Validate gzip1.htm
+ => # 
+ => ###
+
+ => gz_decompress( $gzip ) unless $skip_flag
+ => $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')
  '1'
 
- => unlink 'Gzip1.htm'
+ => unlink 'gzip1.htm'
 
 =head1 QUALITY ASSURANCE
+
+=head2 Test Script Design
+
+The C<Tie:Gzip> test script performs multiple duties. 
+The C<Tie::Gzip> program module finds a gzip software unit
+of opportunity looking for both Perl C<Compress::Zlib> program module
+and a site operating system gzip with the following GNU syntax:
+
+ read_pipe => 'gzip --decompress --stdout {}',
+ write_pipe => 'gzip --stdout > {}',
+
+If a particular site does not support both gzips, 
+those tests, such as the interoperatability between
+different gzip software units, are skipped.
+
+For quality assurance, the C<Tie::Gzip> test is performed on a site that
+supports both. For installation test, only one is needed for a pass.
+However if an installation supports both, both should pass in order
+to meet the interoperatability requirement for the C<Tie::Gzip> module.
+This of course does not test that files produced from gzip software
+units outside the site are interoperatable.
+However, since the site gzip used for the quality assurance test meets
+the RFC 1951 and RFC 1952, the chances are that the gzip outside
+the site is broken if C<Tie::Gzip> cannot decompress it.
+
+A test run example from C<Tie-Gzip-0.04.tar.gz> follows:
+
+ ==> perl gzip.t
+
+ 1..11
+ # Running under perl version 5.006001 for MSWin32
+ # Win32::BuildNumber 635
+ # Current time local: Thu Apr 15 01:39:55 2004
+ # Current time GMT:   Thu Apr 15 05:39:55 2004
+ # Using Test.pm version 1.24
+ # Test::Tech    : 1.18
+ # Data::Secs2   : 1.16
+ # =cut 
+ ok 1 - UUT not loaded 
+ ok 2 - Load UUT 
+ ok 3 - Tie::Gzip Verion 1.12 
+ ok 4 - Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists 
+ ok 5 - Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm 
+ ok 6 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists 
+ ok 7 - Decompress with site os GNU gzip. Validate gzip1.htm 
+ ok 8 - Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists. 
+ ok 9 - Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm 
+ ok 10 - Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists. 
+ ok 11 - Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm. 
+ # Passed : 11/11 100%
+
+=head2 Test Script Software and Operation
 
 Running the test script 'Gzip.t' found in
 the "Tie-Gzip-$VERSION.tar.gz" distribution file verifies

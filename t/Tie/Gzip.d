@@ -7,8 +7,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE);
-$VERSION = '0.01';   # automatically generated file
-$DATE = '2003/09/12';
+$VERSION = '0.02';   # automatically generated file
+$DATE = '2004/04/15';
 
 
 ##### Demonstration Script ####
@@ -40,21 +40,30 @@ use vars qw($__restore_dir__ @__restore_inc__ );
 BEGIN {
     use Cwd;
     use File::Spec;
-    use File::TestPath;
+    use FindBin;
     use Test::Tech qw(tech_config plan demo skip_tests);
 
     ########
-    # Working directory is that of the script file
+    # The working directory for this script file is the directory where
+    # the test script resides. Thus, any relative files written or read
+    # by this test script are located relative to this test script.
     #
+    use vars qw( $__restore_dir__ );
     $__restore_dir__ = cwd();
-    my ($vol, $dirs, undef) = File::Spec->splitpath(__FILE__);
+    my ($vol, $dirs) = File::Spec->splitpath($FindBin::Bin,'nofile');
     chdir $vol if $vol;
     chdir $dirs if $dirs;
 
     #######
-    # Add the library of the unit under test (UUT) to @INC
+    # Pick up any testing program modules off this test script.
     #
-    @__restore_inc__ = File::TestPath->test_lib2inc();
+    # When testing on a target site before installation, place any test
+    # program modules that should not be installed in the same directory
+    # as this test script. Likewise, when testing on a host with a @INC
+    # restricted to just raw Perl distribution, place any test program
+    # modules in the same directory as this test script.
+    #
+    use lib $FindBin::Bin;
 
     unshift @INC, File::Spec->catdir( cwd(), 'lib' ); 
 
@@ -62,11 +71,11 @@ BEGIN {
 
 END {
 
-   #########
-   # Restore working directory and @INC back to when enter script
-   #
-   @INC = @__restore_inc__;
-   chdir $__restore_dir__;
+    #########
+    # Restore working directory and @INC back to when enter script
+    #
+    @INC = @lib::ORIG_INC;
+    chdir $__restore_dir__;
 
 }
 
@@ -105,17 +114,39 @@ demo( "\ \ \ \ use\ File\:\:Package\;\
     my $snl = 'File::SmartNL';
     my $loaded;; # execution
 
+print << 'EOF';
+
+ => ##################
+ => # Load UUT
+ => # 
+ => ###
+
+EOF
+
 demo( "my\ \$errors\ \=\ \$fp\-\>load_package\(\$uut\)"); # typed in command           
       my $errors = $fp->load_package($uut); # execution
 
 demo( "\$errors", # typed in command           
-      $errors # execution
-) unless     $loaded; # condition for execution                            
+      $errors); # execution
+
+
+print << 'EOF';
+
+ => ##################
+ => # Tie::Gzip Verion $Tie::Gzip::VERSION
+ => # 
+ => ###
+
+EOF
+
+demo( "\$Tie\:\:Gzip\:\:VERSION", # typed in command           
+      $Tie::Gzip::VERSION); # execution
+
 
 demo( "\ \ \ \ \ \ sub\ gz_decompress\
 \ \ \ \ \ \{\
 \ \ \ \ \ \ \ \ \ my\ \(\$gzip\)\ \=\ shift\ \@_\;\
-\ \ \ \ \ \ \ \ \ my\ \$file\ \=\ \'Gzip1\.htm\'\;\
+\ \ \ \ \ \ \ \ \ my\ \$file\ \=\ \'gzip1\.htm\'\;\
 \ \
 \ \ \ \ \ \ \ \ \ return\ undef\ unless\ open\(\$gzip\,\ \"\<\ \$file\.gz\"\)\;\
 \
@@ -125,7 +156,7 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
 \ \ \ \ \ \ \ \ \ \ \ \ \ \}\
 \ \ \ \ \ \ \ \ \ \ \ \ \ close\ FILE\;\
 \ \ \ \ \ \ \ \ \ \ \ \ \ close\ \$gzip\;\
-\ \ \ \ \ \ \ \ \ \ \ \ \ unlink\ \'Gzip1\.htm\.gz\'\;\
+\ \ \ \ \ \ \ \ \ \ \ \ \ unlink\ \'gzip1\.htm\.gz\'\;\
 \ \ \ \ \ \ \ \ \ \ \ \ \ return\ 1\;\
 \ \ \ \ \ \ \ \ \ \}\
 \
@@ -136,7 +167,7 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
 \ \ \ \ \ sub\ gz_compress\
 \ \ \ \ \ \{\
 \ \ \ \ \ \ \ \ \ my\ \(\$gzip\)\ \=\ shift\ \@_\;\
-\ \ \ \ \ \ \ \ \ my\ \$file\ \=\ \'Gzip1\.htm\'\;\
+\ \ \ \ \ \ \ \ \ my\ \$file\ \=\ \'gzip1\.htm\'\;\
 \ \ \ \ \ \ \ \ \ return\ undef\ unless\ open\(\$gzip\,\ \"\>\ \$file\.gz\"\)\;\
 \ \ \ \ \ \ \ \ \
 \ \ \ \ \ \ \ \ \ if\(\ open\(FILE\,\ \"\<\ \$file\"\)\ \)\ \{\
@@ -150,21 +181,25 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
 \ \ \ \ \}\
 \
 \ \ \ \ \#\#\#\#\#\
-\ \ \ \ \#\ Compress\ Gzip1\.htm\ with\ gzip\ software\ unit\ of\ opportunity\
-\ \ \ \ \#\ Decompress\ Gzip1\.htm\,gz\ with\ gzip\ software\ unit\ of\ opportunity\
+\ \ \ \ \#\ Compress\ gzip1\.htm\ with\ gzip\ software\ unit\ of\ opportunity\
+\ \ \ \ \#\ Decompress\ gzip1\.htm\,gz\ with\ gzip\ software\ unit\ of\ opportunity\
 \ \ \ \ \#\
-\ \ \ \ unlink\ \'Gzip1\.htm\'\;\
-\ \ \ \ copy\ \'Gzip0\.htm\'\,\ \'Gzip1\.htm\'\;\
+\ \ \ \ unlink\ \'gzip1\.htm\'\;\
+\ \ \ \ copy\ \'gzip0\.htm\'\,\ \'gzip1\.htm\'\;\
 \ \ \ \ tie\ \*GZIP\,\ \'Tie\:\:Gzip\'\;\
 \ \ \ \ my\ \$tie_obj\ \=\ tied\ \*GZIP\;\
 \ \ \ \ my\ \$gz_package\ \=\ \$tie_obj\-\>\{gz_package\}\;\
 \ \ \ \ my\ \$gzip\ \=\ \\\*GZIP\;\
-\ \ \ \ my\ \$success1\ \=\ 0\;\
-\ \ \ \ skip_tests\(\ \)\ unless\ gz_compress\(\ \$gzip\ \)\;"); # typed in command           
+\ \ \ \ \
+\ \ \ \ \#\#\#\#\#\
+\ \ \ \ \#\ Do\ not\ skip\ tests\ 3\ and\ 4\ if\ this\ expression\ fails\.\ Test\ 3\ and\ 4\ passing\
+\ \ \ \ \#\ are\ mandatory\ to\ ensure\ at\ least\ one\ gzip\ is\ available\ and\ works\
+\ \ \ \ \#\ \
+\ \ \ \ my\ \$gzip_opportunity\=\ gz_compress\(\ \$gzip\ \)\;"); # typed in command           
             sub gz_decompress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
  
          return undef unless open($gzip, "< $file.gz");
 
@@ -174,7 +209,7 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
              }
              close FILE;
              close $gzip;
-             unlink 'Gzip1.htm.gz';
+             unlink 'gzip1.htm.gz';
              return 1;
          }
 
@@ -185,7 +220,7 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
      sub gz_compress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
          return undef unless open($gzip, "> $file.gz");
         
          if( open(FILE, "< $file") ) {
@@ -199,69 +234,137 @@ demo( "\ \ \ \ \ \ sub\ gz_decompress\
     }
 
     #####
-    # Compress Gzip1.htm with gzip software unit of opportunity
-    # Decompress Gzip1.htm,gz with gzip software unit of opportunity
+    # Compress gzip1.htm with gzip software unit of opportunity
+    # Decompress gzip1.htm,gz with gzip software unit of opportunity
     #
-    unlink 'Gzip1.htm';
-    copy 'Gzip0.htm', 'Gzip1.htm';
+    unlink 'gzip1.htm';
+    copy 'gzip0.htm', 'gzip1.htm';
     tie *GZIP, 'Tie::Gzip';
     my $tie_obj = tied *GZIP;
     my $gz_package = $tie_obj->{gz_package};
     my $gzip = \*GZIP;
-    my $success1 = 0;
-    skip_tests( ) unless gz_compress( $gzip );; # execution
+    
+    #####
+    # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
+    # are mandatory to ensure at least one gzip is available and works
+    # 
+    my $gzip_opportunity= gz_compress( $gzip );; # execution
 
-demo( "\-e\ \'Gzip1\.htm\.gz\'", # typed in command           
-      -e 'Gzip1.htm.gz'); # execution
+print << 'EOF';
 
+ => ##################
+ => # Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists
+ => # 
+ => ###
+
+EOF
+
+demo( "\-e\ \'gzip1\.htm\.gz\'", # typed in command           
+      -e 'gzip1.htm.gz'); # execution
+
+
+print << 'EOF';
+
+ => ##################
+ => # Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm
+ => # 
+ => ###
+
+EOF
 
 demo( "gz_decompress\(\ \$gzip\ \)"); # typed in command           
       gz_decompress( $gzip ); # execution
 
-demo( "\$success1\ \=\ \$snl\-\>fin\(\ \'Gzip1\.htm\'\)\ eq\ \$snl\-\>fin\(\ \'Gzip0\.htm\'\)", # typed in command           
-      $success1 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')); # execution
+demo( "\$gzip_opportunity\ \=\ \$snl\-\>fin\(\ \'gzip1\.htm\'\)\ eq\ \$snl\-\>fin\(\ \'gzip0\.htm\'\)", # typed in command           
+      $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')); # execution
 
+
+print << 'EOF';
+
+ => ##################
+ => # Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists
+ => # 
+ => ###
+
+EOF
 
 demo( "\ \ \ \ \#\#\#\#\#\ \
-\ \ \ \ \#\ Compress\ Gzip1\.htm\ with\ site\ GNU\ gzip\
-\ \ \ \ \#\ Decompress\ Gzip1\.htm\,gz\ with\ site\ GNU\ gzip\
+\ \ \ \ \#\ Compress\ gzip1\.htm\ with\ site\ operating\ system\ GNU\ gzip\
+\ \ \ \ \#\ Decompress\ gzip1\.htm\,gz\ with\ site\ GNU\ gzip\
 \ \ \ \ \#\
-\ \ \ \ skip_tests\ 0\;\
+\ \ \ \ my\ \$perl_gzip_success\ \=\ 0\;\
+\ \ \ \ my\ \$os_gzip_success\ \=\ 0\;\
+\ \ \ \ if\(\$gzip_opportunity\)\ \{\
+\ \ \ \ \ \ \ \ if\(gz_package\)\ \{\
+\ \ \ \ \ \ \ \ \ \ \ \ \$perl_gzip_success\ \=1\;\
+\ \ \ \ \ \ \ \ \ \ \ \ \$os_gzip_success\ \=\ 0\;\
+\ \ \ \ \ \ \ \ \}\
+\ \ \ \ \ \ \ \ else\ \{\
+\ \ \ \ \ \ \ \ \ \ \ \ \$perl_gzip_success\ \=0\;\
+\ \ \ \ \ \ \ \ \ \ \ \ \$os_gzip_success\ \=\ 1\;\
+\ \ \ \ \ \ \ \ \}\
+\ \ \ \ \}\
 \ \ \ \ tie\ \*GZIP\,\ \'Tie\:\:Gzip\'\,\ \{\
 \ \ \ \ \ \ \ \ read_pipe\ \=\>\ \'gzip\ \-\-decompress\ \-\-stdout\ \{\}\'\,\
 \ \ \ \ \ \ \ \ write_pipe\ \=\>\ \'gzip\ \-\-stdout\ \>\ \{\}\'\,\
 \ \ \ \ \}\;\
 \ \ \ \ \$gzip\ \=\ \\\*GZIP\;\
-\ \ \ \ \
-\ \ \ \ my\ \$success2\ \=\ 0\;\
-\ \ \ \ skip_tests\(\ \)\ unless\ gz_compress\(\ \$gzip\ \)\;"); # typed in command           
+\ \ \
+\ \ \ \ my\ \$skip_flag\ \=\ 0\;\
+\ \ \ \ unless\(\ gz_compress\(\$gzip\)\ \)\ \{\
+\ \ \ \ \ \ \ \ \$skip_flag\ \=\ 1\;\
+\ \ \ \ \ \ \ \ skip_tests\(\ \)\;\
+\ \ \ \ \}\;"); # typed in command           
           ##### 
-    # Compress Gzip1.htm with site GNU gzip
-    # Decompress Gzip1.htm,gz with site GNU gzip
+    # Compress gzip1.htm with site operating system GNU gzip
+    # Decompress gzip1.htm,gz with site GNU gzip
     #
-    skip_tests 0;
+    my $perl_gzip_success = 0;
+    my $os_gzip_success = 0;
+    if($gzip_opportunity) {
+        if(gz_package) {
+            $perl_gzip_success =1;
+            $os_gzip_success = 0;
+        }
+        else {
+            $perl_gzip_success =0;
+            $os_gzip_success = 1;
+        }
+    }
     tie *GZIP, 'Tie::Gzip', {
         read_pipe => 'gzip --decompress --stdout {}',
         write_pipe => 'gzip --stdout > {}',
     };
     $gzip = \*GZIP;
-    
-    my $success2 = 0;
-    skip_tests( ) unless gz_compress( $gzip );; # execution
+  
+    my $skip_flag = 0;
+    unless( gz_compress($gzip) ) {
+        $skip_flag = 1;
+        skip_tests( );
+    };; # execution
 
-demo( "\-e\ \'Gzip1\.htm\.gz\'", # typed in command           
-      -e 'Gzip1.htm.gz'); # execution
-
-
-demo( "gz_decompress\(\ \$gzip\ \)"); # typed in command           
-      gz_decompress( $gzip ); # execution
-
-demo( "\$success2\ \=\ \$snl\-\>fin\(\ \'Gzip1\.htm\'\)\ eq\ \$snl\-\>fin\(\ \'Gzip0\.htm\'\)", # typed in command           
-      $success2 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')); # execution
+demo( "\-e\ \'gzip1\.htm\.gz\'", # typed in command           
+      -e 'gzip1.htm.gz'); # execution
 
 
-demo( "unlink\ \'Gzip1\.htm\'"); # typed in command           
-      unlink 'Gzip1.htm'; # execution
+print << 'EOF';
+
+ => ##################
+ => # Decompress with site os GNU gzip. Validate gzip1.htm
+ => # 
+ => ###
+
+EOF
+
+demo( "gz_decompress\(\ \$gzip\ \)\ unless\ \$skip_flag"); # typed in command           
+      gz_decompress( $gzip ) unless $skip_flag; # execution
+
+demo( "\$os_gzip_success\ \=\ \$snl\-\>fin\(\ \'gzip1\.htm\'\)\ eq\ \$snl\-\>fin\(\ \'gzip0\.htm\'\)", # typed in command           
+      $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')); # execution
+
+
+demo( "unlink\ \'gzip1\.htm\'"); # typed in command           
+      unlink 'gzip1.htm'; # execution
 
 
 =head1 NAME

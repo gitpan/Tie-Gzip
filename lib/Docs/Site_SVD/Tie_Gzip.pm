@@ -10,25 +10,25 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.03';
-$DATE = '2004/04/02';
+$VERSION = '0.04';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.03 2004/04/02), 'revised 0.02'],
-    'MANIFEST' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
-    'Makefile.PL' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
-    'README' => [qw(0.03 2004/04/02), 'generated, replaces 0.02'],
-    'lib/Tie/Gzip.pm' => [qw(1.12 2004/04/01), 'unchanged'],
-    't/Tie/Gzip.pm' => [qw(0.02 2004/04/01), 'unchanged'],
-    't/Tie/Gzip.t' => [qw(0.01 2003/09/12), 'unchanged'],
-    't/Tie/Gzip.d' => [qw(0.01 2003/09/12), 'unchanged'],
-    'tlib/File/Package.pm' => [qw(1.13 2004/04/02), 'unchanged'],
-    'tlib/File/SmartNL.pm' => [qw(1.13 2004/04/02), 'unchanged'],
-    'tlib/Test/Tech.pm' => [qw(1.15 2004/04/02), 'unchanged'],
-    'tlib/Data/Secs2.pm' => [qw(1.15 2004/04/02), 'new'],
-    'tlib/File/TestPath.pm' => [qw(1.11 2004/04/02), 'unchanged'],
+    'lib/Docs/Site_SVD/Tie_Gzip.pm' => [qw(0.04 2004/04/15), 'revised 0.03'],
+    'MANIFEST' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
+    'Makefile.PL' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
+    'README' => [qw(0.04 2004/04/15), 'generated, replaces 0.03'],
+    'lib/Tie/Gzip.pm' => [qw(1.13 2004/04/15), 'revised 1.12'],
+    't/Tie/Gzip.pm' => [qw(0.03 2004/04/15), 'revised 0.02'],
+    't/Tie/Gzip.t' => [qw(0.02 2004/04/15), 'revised 0.01'],
+    't/Tie/Gzip.d' => [qw(0.02 2004/04/15), 'revised 0.01'],
+    't/Tie/File/Package.pm' => [qw(1.16 2004/04/15), 'new'],
+    't/Tie/File/SmartNL.pm' => [qw(1.13 2004/04/15), 'new'],
+    't/Tie/Test/Tech.pm' => [qw(1.18 2004/04/15), 'new'],
+    't/Tie/Data/Secs2.pm' => [qw(1.16 2004/04/15), 'new'],
+    't/Tie/Data/SecsPack.pm' => [qw(0.02 2004/04/15), 'new'],
     't/Tie/Gzip0.htm' => [qw(0.01 2003/09/12), 'unchanged'],
 
 );
@@ -54,13 +54,13 @@ use vars qw(%INVENTORY);
 
  for
 
- Tie::Gzip - gzip and gunzip with a small memory footprint
+ Tie::Gzip - gzip with a small memory footprint
 
- Revision: A
+ Revision: B
 
- Version: 0.03
+ Version: 0.04
 
- Date: 2004/04/02
+ Date: 2004/04/15
 
  Prepared for: General Public 
 
@@ -113,7 +113,7 @@ where the string '{}' is a placeholder for the I<filename>.
 
 =head2 1.3 Document overview.
 
-This document releases Tie::Gzip version 0.03
+This document releases Tie::Gzip version 0.04
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -128,7 +128,7 @@ system file specification.
 
 This document releases the file 
 
- Tie-Gzip-0.03.tar.gz
+ Tie-Gzip-0.04.tar.gz
 
 found at the following repository(s):
 
@@ -200,19 +200,19 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/Tie_Gzip.pm                                0.03    2004/04/02 revised 0.02
- MANIFEST                                                     0.03    2004/04/02 generated, replaces 0.02
- Makefile.PL                                                  0.03    2004/04/02 generated, replaces 0.02
- README                                                       0.03    2004/04/02 generated, replaces 0.02
- lib/Tie/Gzip.pm                                              1.12    2004/04/01 unchanged
- t/Tie/Gzip.pm                                                0.02    2004/04/01 unchanged
- t/Tie/Gzip.t                                                 0.01    2003/09/12 unchanged
- t/Tie/Gzip.d                                                 0.01    2003/09/12 unchanged
- tlib/File/Package.pm                                         1.13    2004/04/02 unchanged
- tlib/File/SmartNL.pm                                         1.13    2004/04/02 unchanged
- tlib/Test/Tech.pm                                            1.15    2004/04/02 unchanged
- tlib/Data/Secs2.pm                                           1.15    2004/04/02 new
- tlib/File/TestPath.pm                                        1.11    2004/04/02 unchanged
+ lib/Docs/Site_SVD/Tie_Gzip.pm                                0.04    2004/04/15 revised 0.03
+ MANIFEST                                                     0.04    2004/04/15 generated, replaces 0.03
+ Makefile.PL                                                  0.04    2004/04/15 generated, replaces 0.03
+ README                                                       0.04    2004/04/15 generated, replaces 0.03
+ lib/Tie/Gzip.pm                                              1.13    2004/04/15 revised 1.12
+ t/Tie/Gzip.pm                                                0.03    2004/04/15 revised 0.02
+ t/Tie/Gzip.t                                                 0.02    2004/04/15 revised 0.01
+ t/Tie/Gzip.d                                                 0.02    2004/04/15 revised 0.01
+ t/Tie/File/Package.pm                                        1.16    2004/04/15 new
+ t/Tie/File/SmartNL.pm                                        1.13    2004/04/15 new
+ t/Tie/Test/Tech.pm                                           1.18    2004/04/15 new
+ t/Tie/Data/Secs2.pm                                          1.16    2004/04/15 new
+ t/Tie/Data/SecsPack.pm                                       0.02    2004/04/15 new
  t/Tie/Gzip0.htm                                              0.01    2003/09/12 unchanged
 
 
@@ -287,6 +287,46 @@ to the call. If no error occurs, the value is indeterminate.
 prerequisite program because loaded the  Data::Secs2 test modules
 to tlib\Test instead of tlib\Data.
 
+=item Tie::Gzip-0.04
+
+The lastest build of Test::STDmaker expects the test library in the same
+directory as the test script.
+Coordiated with the lastest Test::STDmaker by moving the
+test library from tlib to t/Tie, the same directory as the test script
+and deleting the test library File::TestPath program module.
+
+
+http://ppm.activestate.com/BuildStatus/5.8-linux/linux-5.8/Tie-Gzip-0.03.txt
+
+has the following failures:
+
+ PERL_DL_NONLAZY=1 /home/cpanrun/tmp/5.8.0/bin/perl "-MExtUtils::Command::MM" "-e" "test_harness(0, 'blib/lib', 'blib/arch')" t/Tie/Gzip.t
+ t/Tie/Gzip....Could not pipe | gzip --stdout > Gzip1.htm.gz: Illegal seek
+ Could not pipe gzip --decompress --stdout Gzip1.htm.gz |: Illegal seek
+ Could not pipe gzip --decompress --stdout Gzip1.htm.gz |: Illegal seek
+ # Cannot open <Gzip1.htm
+ # Test 9 got: '' (t/Tie/Gzip.t at line 319)
+ #   Expected: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+ <html>
+
+ [snip]
+
+ FAILED test 9
+	Failed 1/11 tests, 90.91% okay (less 5 skipped tests: 5 okay, 45.45%)
+ Failed 1/1 test scripts, 0.00% okay. 1/11 subtests failed, 90.91% okay.
+ Failed Test  Stat Wstat Total Fail  Failed  List of Failed
+ -------------------------------------------------------------------------------
+ t/Tie/Gzip.t               11    1   9.09%  9
+ 5 subtests skipped.
+
+
+The test script is not right and this is a false failure. 
+The test script uses the <Test:Tech> 
+features to force the C<ok> and C<skip> to perform a skip. 
+However, this does not work for Perl code outside the C<ok> and C<skip>
+subroutines.  Added test code to skip outside the C<ok> and C<skip> 
+subroutines.
+
 =back
 
 =head2 3.4 Adaptation data.
@@ -325,13 +365,13 @@ Enter one of the following repositories in a web browser:
   http://www.softwarediamonds/packages/
   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-Right click on 'Tie-Gzip-0.03.tar.gz' and download to a temporary
+Right click on 'Tie-Gzip-0.04.tar.gz' and download to a temporary
 installation directory.
 Enter the following where $make is 'nmake' for microsoft
 windows; otherwise 'make'.
 
- gunzip Tie-Gzip-0.03.tar.gz
- tar -xf Tie-Gzip-0.03.tar
+ gunzip Tie-Gzip-0.04.tar.gz
+ tar -xf Tie-Gzip-0.04.tar
  perl Makefile.PL
  $make test
  $make install
@@ -422,15 +462,15 @@ extension for a Perl test script file
 __DATA__
 
 DISTNAME: Tie-Gzip^
-VERSION : 0.03^
+VERSION : 0.04^
 FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE: 0.02 ^
-REVISION: A ^
+PREVIOUS_RELEASE: 0.03 ^
+REVISION: B ^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
-ABSTRACT: gzip and gunzip with a small memory footprint^
-TITLE   : Tie::Gzip - gzip and gunzip with a small memory footprint^
+ABSTRACT: gzip with a small memory footprint^
+TITLE   : Tie::Gzip - gzip with a small memory footprint^
 END_USER: General Public^
 COPYRIGHT: copyright © 2003 Software Diamonds^
 CLASSIFICATION: NONE^
@@ -455,16 +495,18 @@ lib/Tie/Gzip.pm
 t/Tie/Gzip.pm
 t/Tie/Gzip.t
 t/Tie/Gzip.d
-lib/File/Package.pm => tlib/File/Package.pm
-lib/File/SmartNL.pm => tlib/File/SmartNL.pm
-lib/Test/Tech.pm => tlib/Test/Tech.pm
-lib/Data/Secs2.pm => tlib/Data/Secs2.pm
-lib/File/TestPath.pm => tlib/File/TestPath.pm
+lib/File/Package.pm => t/Tie/File/Package.pm
+lib/File/SmartNL.pm => t/Tie/File/SmartNL.pm
+lib/Test/Tech.pm => t/Tie/Test/Tech.pm
+lib/Data/Secs2.pm => t/Tie/Data/Secs2.pm
+lib/Data/SecsPack.pm => t/Tie/Data/SecsPack.pm
 ^
 
 REPLACE: t/Tie/Gzip0.htm^
 
 PREREQ_PM:  ^
+README_PODS: lib/Tie/Gzip.pm^
+
 TESTS: t/Tie/Gzip.t^
 EXE_FILES:  ^
 
@@ -537,6 +579,46 @@ to the call. If no error occurs, the value is indeterminate.
 
 prerequisite program because loaded the  Data::Secs2 test modules
 to tlib\Test instead of tlib\Data.
+
+\=item Tie::Gzip-0.04
+
+The lastest build of Test::STDmaker expects the test library in the same
+directory as the test script.
+Coordiated with the lastest Test::STDmaker by moving the
+test library from tlib to t/Tie, the same directory as the test script
+and deleting the test library File::TestPath program module.
+
+
+http://ppm.activestate.com/BuildStatus/5.8-linux/linux-5.8/Tie-Gzip-0.03.txt
+
+has the following failures:
+
+ PERL_DL_NONLAZY=1 /home/cpanrun/tmp/5.8.0/bin/perl "-MExtUtils::Command::MM" "-e" "test_harness(0, 'blib/lib', 'blib/arch')" t/Tie/Gzip.t
+ t/Tie/Gzip....Could not pipe | gzip --stdout > Gzip1.htm.gz: Illegal seek
+ Could not pipe gzip --decompress --stdout Gzip1.htm.gz |: Illegal seek
+ Could not pipe gzip --decompress --stdout Gzip1.htm.gz |: Illegal seek
+ # Cannot open <Gzip1.htm
+ # Test 9 got: '' (t/Tie/Gzip.t at line 319)
+ #   Expected: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+ <html>
+
+ [snip]
+
+ FAILED test 9
+	Failed 1/11 tests, 90.91% okay (less 5 skipped tests: 5 okay, 45.45%)
+ Failed 1/1 test scripts, 0.00% okay. 1/11 subtests failed, 90.91% okay.
+ Failed Test  Stat Wstat Total Fail  Failed  List of Failed
+ -------------------------------------------------------------------------------
+ t/Tie/Gzip.t               11    1   9.09%  9
+ 5 subtests skipped.
+
+
+The test script is not right and this is a false failure. 
+The test script uses the <Test:Tech> 
+features to force the C<ok> and C<skip> to perform a skip. 
+However, this does not work for Perl code outside the C<ok> and C<skip>
+subroutines.  Added test code to skip outside the C<ok> and C<skip> 
+subroutines.
 
 \=back
 

@@ -7,13 +7,10 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '0.01';   # automatically generated file
-$DATE = '2003/09/12';
+$VERSION = '0.02';   # automatically generated file
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
-use Getopt::Long;
-use Cwd;
-use File::Spec;
 
 ##### Test Script ####
 #
@@ -42,100 +39,98 @@ use File::Spec;
 # use a BEGIN block so we print our plan before Module Under Test is loaded
 #
 BEGIN { 
-   use vars qw( $__restore_dir__ @__restore_inc__);
+
+   use FindBin;
+   use File::Spec;
+   use Cwd;
 
    ########
-   # Working directory is that of the script file
+   # The working directory for this script file is the directory where
+   # the test script resides. Thus, any relative files written or read
+   # by this test script are located relative to this test script.
    #
+   use vars qw( $__restore_dir__ );
    $__restore_dir__ = cwd();
-   my ($vol, $dirs) = File::Spec->splitpath(__FILE__);
+   my ($vol, $dirs) = File::Spec->splitpath($FindBin::Bin,'nofile');
    chdir $vol if $vol;
    chdir $dirs if $dirs;
-   ($vol, $dirs) = File::Spec->splitpath(cwd(), 'nofile'); # absolutify
 
    #######
-   # Add the library of the unit under test (UUT) to @INC
-   # It will be found first because it is first in the include path
+   # Pick up any testing program modules off this test script.
    #
-   use Cwd;
-   @__restore_inc__ = @INC;
-
-   ######
-   # Find root path of the t directory
+   # When testing on a target site before installation, place any test
+   # program modules that should not be installed in the same directory
+   # as this test script. Likewise, when testing on a host with a @INC
+   # restricted to just raw Perl distribution, place any test program
+   # modules in the same directory as this test script.
    #
-   my @updirs = File::Spec->splitdir( $dirs );
-   while(@updirs && $updirs[-1] ne 't' ) { 
-       chdir File::Spec->updir();
-       pop @updirs;
-   };
-   chdir File::Spec->updir();
-   my $lib_dir = cwd();
-
-   #####
-   # Add this to the include path. Thus modules that start with t::
-   # will be found.
-   # 
-   $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-   unshift @INC, $lib_dir;  # include the current test directory
-
-   #####
-   # Add lib to the include path so that modules under lib at the
-   # same level as t, will be found
-   #
-   $lib_dir = File::Spec->catdir( cwd(), 'lib' );
-   $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-   unshift @INC, $lib_dir;
-
-   #####
-   # Add tlib to the include path so that modules under tlib at the
-   # same level as t, will be found
-   #
-   $lib_dir = File::Spec->catdir( cwd(), 'tlib' );
-   $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-   unshift @INC, $lib_dir;
-   chdir $dirs if $dirs;
- 
-   #####
-   # Add lib under the directory where the test script resides.
-   # This may be used to place version sensitive modules.
-   #
-   $lib_dir = File::Spec->catdir( cwd(), 'lib' );
-   $lib_dir =~ s|/|\\|g if $^O eq 'MSWin32';  # microsoft abberation
-   unshift @INC, $lib_dir;
-
-   ##########
-   # Pick up a output redirection file and tests to skip
-   # from the command line.
-   #
-   my $test_log = '';
-   GetOptions('log=s' => \$test_log);
+   use lib $FindBin::Bin;
 
    ########
    # Using Test::Tech, a very light layer over the module "Test" to
    # conduct the tests.  The big feature of the "Test::Tech: module
-   # is that it takes a expected and actual reference and stringify
-   # them by using "Data::Dumper" before passing them to the "ok"
-   # in test.
+   # is that it takes expected and actual references and stringify
+   # them by using "Data::Secs2" before passing them to the "&Test::ok"
+   # Thus, almost any time of Perl data structures may be
+   # compared by passing a reference to them to Test::Tech::ok
    #
    # Create the test plan by supplying the number of tests
    # and the todo tests
    #
    require Test::Tech;
-   Test::Tech->import( qw(plan ok skip skip_tests tech_config) );
+   Test::Tech->import( qw(plan ok skip skip_tests tech_config finish) );
    plan(tests => 11);
 
 }
 
 
-
 END {
-
+ 
    #########
    # Restore working directory and @INC back to when enter script
    #
-   @INC = @__restore_inc__;
+   @INC = @lib::ORIG_INC;
    chdir $__restore_dir__;
 }
+
+
+=head1 comment_out
+
+###
+# Have been problems with debugger with trapping CARP
+#
+
+####
+# Poor man's eval where the test script traps off the Carp::croak 
+# Carp::confess functions.
+#
+# The Perl authorities have Core::die locked down tight so
+# it is next to impossible to trap off of Core::die. Lucky 
+# must everyone uses Carp to die instead of just dieing.
+#
+use Carp;
+use vars qw($restore_croak $croak_die_error $restore_confess $confess_die_error);
+$restore_croak = \&Carp::croak;
+$croak_die_error = '';
+$restore_confess = \&Carp::confess;
+$confess_die_error = '';
+no warnings;
+*Carp::croak = sub {
+   $croak_die_error = '# Test Script Croak. ' . (join '', @_);
+   $croak_die_error .= Carp::longmess (join '', @_);
+   $croak_die_error =~ s/\n/\n#/g;
+       goto CARP_DIE; # once croak can not continue
+};
+*Carp::confess = sub {
+   $confess_die_error = '# Test Script Confess. ' . (join '', @_);
+   $confess_die_error .= Carp::longmess (join '', @_);
+   $confess_die_error =~ s/\n/\n#/g;
+       goto CARP_DIE; # once confess can not continue
+
+};
+use warnings;
+=cut
+
 
    # Perl code from C:
     use File::Package;
@@ -147,30 +142,37 @@ END {
     my $snl = 'File::SmartNL';
     my $loaded;
 
-ok(  $loaded = $fp->is_package_loaded($uut), # actual results
-      '', # expected results
-     "",
-     "UUT not loaded");
+skip_tests( 1 ) unless ok(
+      $loaded = $fp->is_package_loaded($uut), # actual results
+       '', # expected results
+      "",
+      "UUT not loaded"); 
 
 #  ok:  1
 
    # Perl code from C:
 my $errors = $fp->load_package($uut);
 
-skip_tests( 1 ) unless skip(
-      $loaded, # condition to skip test   
+skip_tests( 1 ) unless ok(
       $errors, # actual results
-      '',  # expected results
+      '', # expected results
       "",
-      "Load UUT");
- 
+      "Load UUT"); 
+
 #  ok:  2
+
+ok(  $Tie::Gzip::VERSION, # actual results
+     $Tie::Gzip::VERSION, # expected results
+     "",
+     "Tie::Gzip Verion $Tie::Gzip::VERSION");
+
+#  ok:  3
 
    # Perl code from C:
       sub gz_decompress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
  
          return undef unless open($gzip, "< $file.gz");
 
@@ -180,7 +182,7 @@ skip_tests( 1 ) unless skip(
              }
              close FILE;
              close $gzip;
-             unlink 'Gzip1.htm.gz';
+             unlink 'gzip1.htm.gz';
              return 1;
          }
 
@@ -191,7 +193,7 @@ skip_tests( 1 ) unless skip(
      sub gz_compress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
          return undef unless open($gzip, "> $file.gz");
         
          if( open(FILE, "< $file") ) {
@@ -205,24 +207,28 @@ skip_tests( 1 ) unless skip(
     }
 
     #####
-    # Compress Gzip1.htm with gzip software unit of opportunity
-    # Decompress Gzip1.htm,gz with gzip software unit of opportunity
+    # Compress gzip1.htm with gzip software unit of opportunity
+    # Decompress gzip1.htm,gz with gzip software unit of opportunity
     #
-    unlink 'Gzip1.htm';
-    copy 'Gzip0.htm', 'Gzip1.htm';
+    unlink 'gzip1.htm';
+    copy 'gzip0.htm', 'gzip1.htm';
     tie *GZIP, 'Tie::Gzip';
     my $tie_obj = tied *GZIP;
     my $gz_package = $tie_obj->{gz_package};
     my $gzip = \*GZIP;
-    my $success1 = 0;
-    skip_tests( ) unless gz_compress( $gzip );
+    
+    #####
+    # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
+    # are mandatory to ensure at least one gzip is available and works
+    # 
+    my $gzip_opportunity= gz_compress( $gzip );
 
-ok(  -e 'Gzip1.htm.gz', # actual results
+ok(  -e 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress Gzip1.htm with gzip software unit of opportunity");
+     "Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists");
 
-#  ok:  3
+#  ok:  4
 
    # Perl code from C:
 gz_decompress( $gzip );
@@ -234,37 +240,51 @@ gz_decompress( $gzip );
 # 
 
 #####
-ok(  $success1 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm'), # actual results
+ok(  $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # actual results
      1, # expected results
      "",
-     "Restore Gzip1.htm with gzip software unit of opportunity");
+     "Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm");
 
-#  ok:  4
+#  ok:  5
 
    # Perl code from C:
     ##### 
-    # Compress Gzip1.htm with site GNU gzip
-    # Decompress Gzip1.htm,gz with site GNU gzip
+    # Compress gzip1.htm with site operating system GNU gzip
+    # Decompress gzip1.htm,gz with site GNU gzip
     #
-    skip_tests 0;
+    my $perl_gzip_success = 0;
+    my $os_gzip_success = 0;
+    if($gzip_opportunity) {
+        if(gz_package) {
+            $perl_gzip_success =1;
+            $os_gzip_success = 0;
+        }
+        else {
+            $perl_gzip_success =0;
+            $os_gzip_success = 1;
+        }
+    }
     tie *GZIP, 'Tie::Gzip', {
         read_pipe => 'gzip --decompress --stdout {}',
         write_pipe => 'gzip --stdout > {}',
     };
     $gzip = \*GZIP;
-    
-    my $success2 = 0;
-    skip_tests( ) unless gz_compress( $gzip );
+  
+    my $skip_flag = 0;
+    unless( gz_compress($gzip) ) {
+        $skip_flag = 1;
+        skip_tests( );
+    };
 
-ok(  -e 'Gzip1.htm.gz', # actual results
+ok(  -e 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress Gzip1.htm with site GNU gzip");
+     "Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists");
 
-#  ok:  5
+#  ok:  6
 
    # Perl code from C:
-gz_decompress( $gzip );
+gz_decompress( $gzip ) unless $skip_flag;
 
 
 ####
@@ -273,41 +293,37 @@ gz_decompress( $gzip );
 # 
 
 #####
-ok(  $success2 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm'), # actual results
+ok(  $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm'), # actual results
      1, # expected results
      "",
-     "Restore Gzip1.htm with site GNU gzip");
-
-#  ok:  6
-
-ok(  $success1 || $success2, # actual results
-     1, # expected results
-     "",
-     "At least one gzip software unit works");
+     "Decompress with site os GNU gzip. Validate gzip1.htm");
 
 #  ok:  7
 
    # Perl code from C:
     ######
-    # Compress Gzip1.htm with Compress::Zlib
-    # Decompress Gzip1.htm,gz with site GNU gzip
+    # Compress gzip1.htm with Compress::Zlib
+    # Decompress gzip1.htm,gz with site GNU gzip
     #
-    skip_tests !($gz_package && $success2);
-    tie *GZIP, 'Tie::Gzip', {
-        read_pipe => 'gzip --decompress --stdout {}',
+    $skip_flag = !($gz_package && $os_gzip_success && $perl_gzip_success);
+    skip_tests( $skip_flag );
+    unless($skip_flag) {
+        tie *GZIP, 'Tie::Gzip', {
+            read_pipe => 'gzip --decompress --stdout {}',
+        };
+        $gzip = \*GZIP;
+        gz_compress( $gzip );
     };
-    $gzip = \*GZIP;
-    skip_tests( ) unless gz_compress( $gzip );
 
-ok(  -e 'Gzip1.htm.gz', # actual results
+ok(  -e 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress Gzip1.htm with Compress::Zlib");
+     "Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists.");
 
 #  ok:  8
 
    # Perl code from C:
-gz_decompress( $gzip );
+gz_decompress( $gzip ) unless $skip_flag;
 
 
 ####
@@ -316,34 +332,35 @@ gz_decompress( $gzip );
 # 
 
 #####
-ok(  $snl->fin( 'Gzip1.htm'), # actual results
-     $snl->fin( 'Gzip0.htm'), # expected results
+ok(  $snl->fin( 'gzip1.htm'), # actual results
+     $snl->fin( 'gzip0.htm'), # expected results
      "",
-     "Restore Gzip1.htm with site GNU gzip");
+     "Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm");
 
 #  ok:  9
 
    # Perl code from C:
     ######
-    # Compress Gzip1.htm with site GNU gzipC
-    # Decompress Gzip1.htm,gz with ompress::Zlib
+    # Compress gzip1.htm with site GNU gzipC
+    # Decompress gzip1.htm,gz with Compress::Zlib
     #
-    skip_tests !($gz_package && $success2);
-    tie *GZIP, 'Tie::Gzip', {
-        write_pipe => 'gzip --stdout > {}',
+    unless($skip_flag) {
+        tie *GZIP, 'Tie::Gzip', {
+            write_pipe => 'gzip --stdout > {}',
+        };
+        $gzip = \*GZIP;
+        skip_tests( ) unless gz_compress( $gzip );
     };
-    $gzip = \*GZIP;
-    skip_tests( ) unless gz_compress( $gzip );
 
-ok(  -e 'Gzip1.htm.gz', # actual results
+ok(  -e 'gzip1.htm.gz', # actual results
      1, # expected results
      "",
-     "Compress Gzip1.htm with site GNU gzip");
+     "Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists.");
 
 #  ok:  10
 
    # Perl code from C:
-gz_decompress( $gzip );
+gz_decompress( $gzip ) unless $skip_flag;
 
 
 ####
@@ -352,16 +369,38 @@ gz_decompress( $gzip );
 # 
 
 #####
-ok(  $snl->fin( 'Gzip1.htm'), # actual results
-     $snl->fin( 'Gzip0.htm'), # expected results
+ok(  $snl->fin( 'gzip1.htm'), # actual results
+     $snl->fin( 'gzip0.htm'), # expected results
      "",
-     "Restore Gzip1.htm with Compress::Zlib");
+     "Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm.");
 
 #  ok:  11
 
    # Perl code from C:
-unlink 'Gzip1.htm';
+unlink 'gzip1.htm';
 
+
+=head1 comment out
+
+# does not work with debugger
+CARP_DIE:
+    if ($croak_die_error || $confess_die_error) {
+        print $Test::TESTOUT = "not ok $Test::ntest\n";
+        $Test::ntest++;
+        print $Test::TESTERR $croak_die_error . $confess_die_error;
+        $croak_die_error = '';
+        $confess_die_error = '';
+        skip_tests(1, 'Test invalid because of Carp die.');
+    }
+    no warnings;
+    *Carp::croak = $restore_croak;    
+    *Carp::confess = $restore_confess;
+    use warnings;
+=cut
+
+    finish();
+
+__END__
 
 =head1 NAME
 

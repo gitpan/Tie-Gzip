@@ -10,8 +10,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.02';
-$DATE = '2004/04/01';
+$VERSION = '0.03';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 ########
@@ -40,7 +40,7 @@ $FILE = __FILE__;
 
  Version: 
 
- Date: 2003/09/12
+ Date: 2004/04/15
 
  Prepared for: General Public 
 
@@ -97,13 +97,12 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
  VO: ^
   N: UUT not loaded^
   A: $loaded = $fp->is_package_loaded($uut)^
-  E:  ''^
+ SE:  ''^
  ok: 1^
 
 =head2 ok: 2
 
   N: Load UUT^
-  S: $loaded^
   C: my $errors = $fp->load_package($uut)^
   A: $errors^
  SE: ''^
@@ -111,12 +110,19 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
 
 =head2 ok: 3
 
+  N: Tie::Gzip Verion $Tie::Gzip::VERSION^
+  A: $Tie::Gzip::VERSION^
+  E: $Tie::Gzip::VERSION^
+ ok: 3^
+
+=head2 ok: 4
+
 
   C:
        sub gz_decompress
       {
           my ($gzip) = shift @_;
-          my $file = 'Gzip1.htm';
+          my $file = 'gzip1.htm';
   
           return undef unless open($gzip, "< $file.gz");
           if( open (FILE, "> $file" ) ) {
@@ -125,7 +131,7 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
               }
               close FILE;
               close $gzip;
-              unlink 'Gzip1.htm.gz';
+              unlink 'gzip1.htm.gz';
               return 1;
           }
           1 
@@ -133,7 +139,7 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
       sub gz_compress
       {
           my ($gzip) = shift @_;
-          my $file = 'Gzip1.htm';
+          my $file = 'gzip1.htm';
           return undef unless open($gzip, "> $file.gz");
          
           if( open(FILE, "< $file") ) {
@@ -146,101 +152,114 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
           close $gzip;
      }
      #####
-     # Compress Gzip1.htm with gzip software unit of opportunity
-     # Decompress Gzip1.htm,gz with gzip software unit of opportunity
+     # Compress gzip1.htm with gzip software unit of opportunity
+     # Decompress gzip1.htm,gz with gzip software unit of opportunity
      #
-     unlink 'Gzip1.htm';
-     copy 'Gzip0.htm', 'Gzip1.htm';
+     unlink 'gzip1.htm';
+     copy 'gzip0.htm', 'gzip1.htm';
      tie *GZIP, 'Tie::Gzip';
      my $tie_obj = tied *GZIP;
      my $gz_package = $tie_obj->{gz_package};
      my $gzip = \*GZIP;
-     my $success1 = 0;
-     skip_tests( ) unless gz_compress( $gzip );
+     
+     #####
+     # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
+     # are mandatory to ensure at least one gzip is available and works
+     # 
+     my $gzip_opportunity= gz_compress( $gzip );
  ^
-  N: Compress Gzip1.htm with gzip software unit of opportunity^
-  A: -e 'Gzip1.htm.gz'^
-  E: 1^
- ok: 3^
-
-=head2 ok: 4
-
-  C: gz_decompress( $gzip )^
-  R: L<Tie::Gzip/data integrity [1]>^
-  N: Restore Gzip1.htm with gzip software unit of opportunity^
-  A: $success1 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')^
+  N: Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists^
+  A: -e 'gzip1.htm.gz'^
   E: 1^
  ok: 4^
 
 =head2 ok: 5
 
-
-  C:
-     ##### 
-     # Compress Gzip1.htm with site GNU gzip
-     # Decompress Gzip1.htm,gz with site GNU gzip
-     #
-     skip_tests 0;
-     tie *GZIP, 'Tie::Gzip', {
-         read_pipe => 'gzip --decompress --stdout {}',
-         write_pipe => 'gzip --stdout > {}',
-     };
-     $gzip = \*GZIP;
-     
-     my $success2 = 0;
-     skip_tests( ) unless gz_compress( $gzip );
- ^
-  N: Compress Gzip1.htm with site GNU gzip^
-  A: -e 'Gzip1.htm.gz'^
+  N: Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm^
+  C: gz_decompress( $gzip )^
+  R: L<Tie::Gzip/data integrity [1]>^
+  A: $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')^
   E: 1^
  ok: 5^
 
 =head2 ok: 6
 
-  C: gz_decompress( $gzip )^
-  R: L<Tie::Gzip/data integrity [1]>^
-  N: Restore Gzip1.htm with site GNU gzip^
-  A: $success2 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')^
+  N: Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists^
+
+  C:
+     ##### 
+     # Compress gzip1.htm with site operating system GNU gzip
+     # Decompress gzip1.htm,gz with site GNU gzip
+     #
+     my $perl_gzip_success = 0;
+     my $os_gzip_success = 0;
+     if($gzip_opportunity) {
+         if(gz_package) {
+             $perl_gzip_success =1;
+             $os_gzip_success = 0;
+         }
+         else {
+             $perl_gzip_success =0;
+             $os_gzip_success = 1;
+         }
+     }
+     tie *GZIP, 'Tie::Gzip', {
+         read_pipe => 'gzip --decompress --stdout {}',
+         write_pipe => 'gzip --stdout > {}',
+     };
+     $gzip = \*GZIP;
+   
+     my $skip_flag = 0;
+     unless( gz_compress($gzip) ) {
+         $skip_flag = 1;
+         skip_tests( );
+     };
+ ^
+  A: -e 'gzip1.htm.gz'^
   E: 1^
  ok: 6^
 
 =head2 ok: 7
 
- VO: ^
-  N: At least one gzip software unit works^
-  A: $success1 || $success2^
+  N: Decompress with site os GNU gzip. Validate gzip1.htm^
+  C: gz_decompress( $gzip ) unless $skip_flag^
+  R: L<Tie::Gzip/data integrity [1]>^
+  A: $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')^
   E: 1^
  ok: 7^
 
 =head2 ok: 8
 
  VO: ^
+  N: Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists.^
 
   C:
      ######
-     # Compress Gzip1.htm with Compress::Zlib
-     # Decompress Gzip1.htm,gz with site GNU gzip
+     # Compress gzip1.htm with Compress::Zlib
+     # Decompress gzip1.htm,gz with site GNU gzip
      #
-     skip_tests !($gz_package && $success2);
-     tie *GZIP, 'Tie::Gzip', {
-         read_pipe => 'gzip --decompress --stdout {}',
-     };
-     $gzip = \*GZIP;
-     skip_tests( ) unless gz_compress( $gzip );
+     $skip_flag = !($gz_package && $os_gzip_success && $perl_gzip_success);
+     skip_tests( $skip_flag );
+     unless($skip_flag) {
+         tie *GZIP, 'Tie::Gzip', {
+             read_pipe => 'gzip --decompress --stdout {}',
+         };
+         $gzip = \*GZIP;
+         gz_compress( $gzip );
+     }
  ^
-  N: Compress Gzip1.htm with Compress::Zlib^
-  A: -e 'Gzip1.htm.gz'^
+  A: -e 'gzip1.htm.gz'^
   E: 1^
  ok: 8^
 
 =head2 ok: 9
 
  VO: ^
-  C: gz_decompress( $gzip )^
+  C: gz_decompress( $gzip ) unless $skip_flag^
   R: L<Tie::Gzip/interoperability [1]>^
-  N: Restore Gzip1.htm with site GNU gzip^
-  A: $snl->fin( 'Gzip1.htm')^
-  E: $snl->fin( 'Gzip0.htm')^
+  N: Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm^
+  A: $snl->fin( 'gzip1.htm')^
+  E: $snl->fin( 'gzip0.htm')^
  ok: 9^
 
 =head2 ok: 10
@@ -249,30 +268,31 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
 
   C:
      ######
-     # Compress Gzip1.htm with site GNU gzipC
-     # Decompress Gzip1.htm,gz with ompress::Zlib
+     # Compress gzip1.htm with site GNU gzipC
+     # Decompress gzip1.htm,gz with Compress::Zlib
      #
-     skip_tests !($gz_package && $success2);
-     tie *GZIP, 'Tie::Gzip', {
-         write_pipe => 'gzip --stdout > {}',
-     };
-     $gzip = \*GZIP;
-     skip_tests( ) unless gz_compress( $gzip );
+     unless($skip_flag) {
+         tie *GZIP, 'Tie::Gzip', {
+             write_pipe => 'gzip --stdout > {}',
+         };
+         $gzip = \*GZIP;
+         skip_tests( ) unless gz_compress( $gzip );
+     }
  ^
  VO: ^
-  N: Compress Gzip1.htm with site GNU gzip^
-  A: -e 'Gzip1.htm.gz'^
+  N: Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists.^
+  A: -e 'gzip1.htm.gz'^
   E: 1^
  ok: 10^
 
 =head2 ok: 11
 
  VO: ^
-  C: gz_decompress( $gzip )^
+  N: Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm.^
+  C: gz_decompress( $gzip ) unless $skip_flag^
   R: L<Tie::Gzip/interoperability [1]>^
-  N: Restore Gzip1.htm with Compress::Zlib^
-  A: $snl->fin( 'Gzip1.htm')^
-  E: $snl->fin( 'Gzip0.htm')^
+  A: $snl->fin( 'gzip1.htm')^
+  E: $snl->fin( 'gzip0.htm')^
  ok: 11^
 
 
@@ -287,8 +307,8 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
 
   Requirement                                                      Test
  ---------------------------------------------------------------- ----------------------------------------------------------------
- L<Tie::Gzip/data integrity [1]>                                  L<t::Tie::Gzip/ok: 4>
- L<Tie::Gzip/data integrity [1]>                                  L<t::Tie::Gzip/ok: 6>
+ L<Tie::Gzip/data integrity [1]>                                  L<t::Tie::Gzip/ok: 5>
+ L<Tie::Gzip/data integrity [1]>                                  L<t::Tie::Gzip/ok: 7>
  L<Tie::Gzip/interoperability [1]>                                L<t::Tie::Gzip/ok: 11>
  L<Tie::Gzip/interoperability [1]>                                L<t::Tie::Gzip/ok: 9>
 
@@ -296,8 +316,8 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
   Test                                                             Requirement
  ---------------------------------------------------------------- ----------------------------------------------------------------
  L<t::Tie::Gzip/ok: 11>                                           L<Tie::Gzip/interoperability [1]>
- L<t::Tie::Gzip/ok: 4>                                            L<Tie::Gzip/data integrity [1]>
- L<t::Tie::Gzip/ok: 6>                                            L<Tie::Gzip/data integrity [1]>
+ L<t::Tie::Gzip/ok: 5>                                            L<Tie::Gzip/data integrity [1]>
+ L<t::Tie::Gzip/ok: 7>                                            L<Tie::Gzip/data integrity [1]>
  L<t::Tie::Gzip/ok: 9>                                            L<Tie::Gzip/interoperability [1]>
 
 
@@ -363,7 +383,7 @@ ANY WAY OUT OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =head1 SEE ALSO
 
-L<Compress::Gzip>
+L<Tie::Gzip>
 
 =back
 
@@ -418,22 +438,26 @@ Verify: Gzip.t^
 VO: ^
  N: UUT not loaded^
  A: $loaded = $fp->is_package_loaded($uut)^
- E:  ''^
+SE:  ''^
 ok: 1^
 
  N: Load UUT^
- S: $loaded^
  C: my $errors = $fp->load_package($uut)^
  A: $errors^
 SE: ''^
 ok: 2^
+
+ N: Tie::Gzip Verion $Tie::Gzip::VERSION^
+ A: $Tie::Gzip::VERSION^
+ E: $Tie::Gzip::VERSION^
+ok: 3^
 
 
  C:
       sub gz_decompress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
  
          return undef unless open($gzip, "< $file.gz");
 
@@ -443,7 +467,7 @@ ok: 2^
              }
              close FILE;
              close $gzip;
-             unlink 'Gzip1.htm.gz';
+             unlink 'gzip1.htm.gz';
              return 1;
          }
 
@@ -454,7 +478,7 @@ ok: 2^
      sub gz_compress
      {
          my ($gzip) = shift @_;
-         my $file = 'Gzip1.htm';
+         my $file = 'gzip1.htm';
          return undef unless open($gzip, "> $file.gz");
         
          if( open(FILE, "< $file") ) {
@@ -468,124 +492,140 @@ ok: 2^
     }
 
     #####
-    # Compress Gzip1.htm with gzip software unit of opportunity
-    # Decompress Gzip1.htm,gz with gzip software unit of opportunity
+    # Compress gzip1.htm with gzip software unit of opportunity
+    # Decompress gzip1.htm,gz with gzip software unit of opportunity
     #
-    unlink 'Gzip1.htm';
-    copy 'Gzip0.htm', 'Gzip1.htm';
+    unlink 'gzip1.htm';
+    copy 'gzip0.htm', 'gzip1.htm';
     tie *GZIP, 'Tie::Gzip';
     my $tie_obj = tied *GZIP;
     my $gz_package = $tie_obj->{gz_package};
     my $gzip = \*GZIP;
-    my $success1 = 0;
-    skip_tests( ) unless gz_compress( $gzip );
+    
+    #####
+    # Do not skip tests 3 and 4 if this expression fails. Test 3 and 4 passing
+    # are mandatory to ensure at least one gzip is available and works
+    # 
+    my $gzip_opportunity= gz_compress( $gzip );
 ^
 
- N: Compress Gzip1.htm with gzip software unit of opportunity^
- A: -e 'Gzip1.htm.gz'^
- E: 1^
-ok: 3^
-
- C: gz_decompress( $gzip )^
- R: L<Tie::Gzip/data integrity [1]>^
- N: Restore Gzip1.htm with gzip software unit of opportunity^
- A: $success1 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')^
+ N: Compress gzip1.htm with gzip of opportunity; Validate gzip1.htm.gz exists^
+ A: -e 'gzip1.htm.gz'^
  E: 1^
 ok: 4^
 
+ N: Decompress gzip1.htm.gz with gzip of opportunity; Validate gzip1.htm^
+ C: gz_decompress( $gzip )^
+ R: L<Tie::Gzip/data integrity [1]>^
+ A: $gzip_opportunity = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')^
+ E: 1^
+ok: 5^
+
+ N: Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists^
 
  C:
     ##### 
-    # Compress Gzip1.htm with site GNU gzip
-    # Decompress Gzip1.htm,gz with site GNU gzip
+    # Compress gzip1.htm with site operating system GNU gzip
+    # Decompress gzip1.htm,gz with site GNU gzip
     #
-    skip_tests 0;
+    my $perl_gzip_success = 0;
+    my $os_gzip_success = 0;
+    if($gzip_opportunity) {
+        if(gz_package) {
+            $perl_gzip_success =1;
+            $os_gzip_success = 0;
+        }
+        else {
+            $perl_gzip_success =0;
+            $os_gzip_success = 1;
+        }
+    }
     tie *GZIP, 'Tie::Gzip', {
         read_pipe => 'gzip --decompress --stdout {}',
         write_pipe => 'gzip --stdout > {}',
     };
     $gzip = \*GZIP;
-    
-    my $success2 = 0;
-    skip_tests( ) unless gz_compress( $gzip );
+  
+    my $skip_flag = 0;
+    unless( gz_compress($gzip) ) {
+        $skip_flag = 1;
+        skip_tests( );
+    };
 ^
 
- N: Compress Gzip1.htm with site GNU gzip^
- A: -e 'Gzip1.htm.gz'^
- E: 1^
-ok: 5^
-
- C: gz_decompress( $gzip )^
- R: L<Tie::Gzip/data integrity [1]>^
- N: Restore Gzip1.htm with site GNU gzip^
- A: $success2 = $snl->fin( 'Gzip1.htm') eq $snl->fin( 'Gzip0.htm')^
+ A: -e 'gzip1.htm.gz'^
  E: 1^
 ok: 6^
 
-VO: ^
- N: At least one gzip software unit works^
- A: $success1 || $success2^
+ N: Decompress with site os GNU gzip. Validate gzip1.htm^
+ C: gz_decompress( $gzip ) unless $skip_flag^
+ R: L<Tie::Gzip/data integrity [1]>^
+ A: $os_gzip_success = $snl->fin( 'gzip1.htm') eq $snl->fin( 'gzip0.htm')^
  E: 1^
 ok: 7^
 
 VO: ^
+ N: Compress gzip1.htm with Compress::Zlib. Valid gzip1.htm.gz exists.^
 
  C:
     ######
-    # Compress Gzip1.htm with Compress::Zlib
-    # Decompress Gzip1.htm,gz with site GNU gzip
+    # Compress gzip1.htm with Compress::Zlib
+    # Decompress gzip1.htm,gz with site GNU gzip
     #
-    skip_tests !($gz_package && $success2);
-    tie *GZIP, 'Tie::Gzip', {
-        read_pipe => 'gzip --decompress --stdout {}',
-    };
-    $gzip = \*GZIP;
-    skip_tests( ) unless gz_compress( $gzip );
+    $skip_flag = !($gz_package && $os_gzip_success && $perl_gzip_success);
+    skip_tests( $skip_flag );
+    unless($skip_flag) {
+        tie *GZIP, 'Tie::Gzip', {
+            read_pipe => 'gzip --decompress --stdout {}',
+        };
+        $gzip = \*GZIP;
+        gz_compress( $gzip );
+    }
 ^
 
- N: Compress Gzip1.htm with Compress::Zlib^
- A: -e 'Gzip1.htm.gz'^
+ A: -e 'gzip1.htm.gz'^
  E: 1^
 ok: 8^
 
 VO: ^
- C: gz_decompress( $gzip )^
+ C: gz_decompress( $gzip ) unless $skip_flag^
  R: L<Tie::Gzip/interoperability [1]>^
- N: Restore Gzip1.htm with site GNU gzip^
- A: $snl->fin( 'Gzip1.htm')^
- E: $snl->fin( 'Gzip0.htm')^
+ N: Decompress gzip1.htm.gz with site OS GNU gzip. Validate gzip1.htm^
+ A: $snl->fin( 'gzip1.htm')^
+ E: $snl->fin( 'gzip0.htm')^
 ok: 9^
 
 VO: ^
 
  C:
     ######
-    # Compress Gzip1.htm with site GNU gzipC
-    # Decompress Gzip1.htm,gz with ompress::Zlib
+    # Compress gzip1.htm with site GNU gzipC
+    # Decompress gzip1.htm,gz with Compress::Zlib
     #
-    skip_tests !($gz_package && $success2);
-    tie *GZIP, 'Tie::Gzip', {
-        write_pipe => 'gzip --stdout > {}',
-    };
-    $gzip = \*GZIP;
-    skip_tests( ) unless gz_compress( $gzip );
+    unless($skip_flag) {
+        tie *GZIP, 'Tie::Gzip', {
+            write_pipe => 'gzip --stdout > {}',
+        };
+        $gzip = \*GZIP;
+        skip_tests( ) unless gz_compress( $gzip );
+    }
 ^
 
 VO: ^
- N: Compress Gzip1.htm with site GNU gzip^
- A: -e 'Gzip1.htm.gz'^
+ N: Compress gzip1.htm with site os GNU gzip. Validate gzip1.htm.gz exists.^
+ A: -e 'gzip1.htm.gz'^
  E: 1^
 ok: 10^
 
 VO: ^
- C: gz_decompress( $gzip )^
+ N: Decompress gzip1.htm.gz with Compress::Zlib. Validate gzip1.htm.^
+ C: gz_decompress( $gzip ) unless $skip_flag^
  R: L<Tie::Gzip/interoperability [1]>^
- N: Restore Gzip1.htm with Compress::Zlib^
- A: $snl->fin( 'Gzip1.htm')^
- E: $snl->fin( 'Gzip0.htm')^
+ A: $snl->fin( 'gzip1.htm')^
+ E: $snl->fin( 'gzip0.htm')^
 ok: 11^
 
- C: unlink 'Gzip1.htm'^
+ C: unlink 'gzip1.htm'^
 
 See_Also: L<Tie::Gzip>^
 

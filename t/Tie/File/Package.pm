@@ -11,22 +11,22 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '1.13';
-$DATE = '2004/04/01';
+$VERSION = '1.16';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use File::Spec;
-# use SelfLoader;
+use SelfLoader;
 
 use vars qw(@ISA @EXPORT_OK);
 require Exporter;
 @ISA= qw(Exporter);
-@EXPORT_OK = qw(load_package is_package_loaded eval_str unload_package);
+@EXPORT_OK = qw(load_package is_package_loaded eval_str);
+use vars qw(@import);
 
+1;
 
-# 1;
-
-# __DATA__
+__DATA__
 
 
 ######
@@ -39,70 +39,85 @@ sub load_package
      # This subroutine uses no object data; therefore,
      # drop any class or object.
      #
-     shift @_ if UNIVERSAL::isa($_[0],__PACKAGE__);
+     shift if UNIVERSAL::isa($_[0],__PACKAGE__);
+     local @import;
 
-     my ($package, @import) = @_;
+     (my $program_module, @import) = @_;
+     return  "# The package name is empty. There is no package to load.\n"
+         unless ($program_module); 
 
-     unless ($package) { # have problem if there is no package
-         return  "# The package name is empty. There is no package to load.\n";
-     }
-
-     if( $package =~ /\-/ ) {
-         return  "# The - in $package causes problems. Perl thinks - is subtraction when it evals it.\n";
-     }
-
+     my $packages = $import[-1] && ref($import[-1]) eq 'ARRAY' ? pop @import : [$program_module];
+        
      my $error = '';
-     if (File::Package->is_package_loaded( $package )) {
+     my $restore_warn = $SIG{__WARN__};
+     my $restore_croak = \&Carp::croak;
+     unless (File::Package->is_package_loaded( $program_module )) {
 
-         #####          
-         # Import flagged symbols from load package into current package vocabulary.
+         #####
+         # Load the module
          #
-         my $restore_level = $Exporter::ExportLevel;
-         $Exporter::ExportLevel = 1;
-         if( @import ) {
-             $error = eval_str( "$package->import( \@import );" ) if ($import[0] );
-         }
-         else {
-             $error = eval_str( "$package->import( );" );
-         }
-         $Exporter::ExportLevel = $restore_level; 
-         return $error;
-     }
+         # On error when evaluating "require $program_module" only the last
+         # line of STDERR, at least on one Perl, is return in $@.
+         # Save the entire STDERR to a memory variable by using eval_str
+         #
+         $error = eval_str ("require $program_module;");
+         return "Cannot load $program_module\n\t" . $error if $error;
 
-     #####
-     # Load the module
-     #
-     # On error when evaluating "require $package" only the last
-     # line of STDERR, at least on one Perl, is return in $@.
-     # Save the entire STDERR to a memory variable
-     #
-     $error = eval_str ("require $package;");
-     return "Cannot load $package\n\t" . $error if $error;
-
-     #####
-     # Verify the package vocabulary is present
-     #
-     unless (File::Package->is_package_loaded( $package )) {
-         return "# $package loaded but package vocabulary absent.\n";
+         #####
+         # Verify the package vocabulary is present
+         #
+         my @package_names = ();
+         foreach (@$packages) { 
+             push @package_names, $_ unless File::Package->is_package_loaded($_, $program_module );
+         }
+         return "# $program_module file but package(s) " . (join ',',@package_names) . " absent.\n"
+              if @package_names;
      }
 
      ####
      # Import flagged symbols from load package into current package vocabulary.
      #
-     $error = '';
-     my $restore_level = $Exporter::ExportLevel;
-     $Exporter::ExportLevel = 1;
      if( @import ) {
-         $error = eval_str( "$package->import( \@import );" ) if ($import[0] );
-     }
-     else {
-         $error = eval_str( "$package->import( );" );
-     }
-     $Exporter::ExportLevel = $restore_level;  
 
+         ####
+         # Import does not work correctly when running under eval. Import
+         # uses the caller stack to determine way to stuff the symbols.
+         # The eval messes with the stack. Since not using an eval, need
+         # to double check to make sure import does not die.
+         
+         ####
+         # Poor man's eval where trap off the Carp::croak function.
+         # The Perl authorities have Core::die locked down tight so
+         # it is next to impossible to trap off of Core::die. Lucky 
+         # must everyone uses Carp::croak instead of just dieing.
+         #
+         # Anyway, get the benefit of a lot of stack gyrations to
+         # formulate the correct error msg by Exporter::import.
+         # 
+         no warnings;
+         $SIG{__WARN__} = sub { $error .= join '', @_; };
+         *Carp::croak = sub {
+             $error = 'import die. ' . (join '', @_);
+             $error .= Carp::longmess (join '', @_);
+             goto IMPORT; # once croak can not continue
+         };
+         use warnings;
+         local $Exporter::ExportLevel = 1;
+         if(@import == 1 && defined $import[0] && $import[0] eq '') {
+             $program_module->import( );
+         }
+         else {
+             $program_module->import( @import );
+         }
+         no warnings;
+         IMPORT: *Carp::croak = $restore_croak;
+         $SIG{__WARN__} = ref( $restore_warn ) ? $restore_warn : '';
+         use warnings;
+     }
+     $SIG{__WARN__} = ref( $restore_warn ) ? $restore_warn : '';
      return $error;
-
 }
+
 
 
 
@@ -118,56 +133,13 @@ sub eval_str
      my $error_msg = '';
      $SIG{__WARN__} = sub { $error_msg .= join '', @_; };
      eval $str;
-     $SIG{__WARN__} = $restore_warn;
+     $SIG{__WARN__} = ref( $restore_warn ) ? $restore_warn : '';
 
      $error_msg = $@ . $error_msg if $@;
      $error_msg =~ s/\n/\n\t/g if $error_msg;
      $error_msg;
 }
 
-
-
-######
-#
-#
-sub unload_package
-{
-     ######
-     # This subroutine uses no object data; therefore,
-     # drop any class or object.
-     #
-     shift @_ if UNIVERSAL::isa($_[0],__PACKAGE__);
-
-     my  ($package)  = @_;
-
-     ########
-     # Remove the package vocabulary
-     #
-     my $vocabulary = $package . '::';
-     no strict;
-     undef %$vocabulary;
-     use strict;
-
-     #######
-     # The %INC hash determines if the program module containing
-     # the has been loaded
-     #
-     my $require = File::PM2File->pm2require($package);
-     delete $INC{$require};
-
-     ####
-     # Microsoft cannot make up its mind to use
-     # Microsoft \ or Unix / for path separator.
-     # 
-     # Just in case, running Microsoft, delete
-     # Unix mirror name for the file
-     #
-     $require =~ s|\\|/|g; 
-     delete $INC{$require};
-     $require =~ s|/|\\|g; 
-     delete $INC{$require};
-
-}
 
 ######
 #
@@ -180,11 +152,14 @@ sub is_package_loaded
      #
      shift @_ if UNIVERSAL::isa($_[0],__PACKAGE__);
 
-     my ($package) = @_;
+     my ($package, $program_module) = @_;
    
-     $package .= "::";
-     my $vocabulary = defined %$package;
-     my $require = File::Spec->catfile( split /::/, $_[0] . '.pm');
+     my $package_hash = $package . "::";
+     my $vocabulary = defined %$package_hash;
+
+
+     $program_module = $package unless $program_module;
+     my $require = File::Spec->catfile( split /::/, $program_module . '.pm');
      my $inc = $INC{$require};
 
      ####
@@ -194,13 +169,18 @@ sub is_package_loaded
      # Just in case, running Microsoft, delete
      # Unix mirror name for the file
      #
-     $require =~ s|\\|/|g; 
+     my $OS = $^O; 
+     unless ($OS) {   # on some perls $^O is not defined
+         require Config;
+	 $OS = $Config::Config{'osname'};
+     } 
+     $require =~ s|\\|/|g if $OS eq 'MSWin32';; 
      $inc = $inc || $INC{$require};
-
-     $vocabulary && $inc;
+     ($vocabulary && $inc) ? 1 : '';
 }
 
 1
+
 
 __END__
 
@@ -214,41 +194,69 @@ File::Package - test load a program module with a package of the same name
  ##########
  # Subroutine interface
  #
- use File::Package qw( is_package_loaded, load_package)
+ use File::Package qw(is_package_loaded load_package);
 
- $package = is_package_loaded($package)
- $error   = load_package($package)
- $error   = load_package($package, @import)
+ $yes = is_package_loaded($package, $program_module);
+
+ $error   = load_package($program_module);
+ $error   = load_package($program_module, @import);
+ $error   = load_package($program_module, [@package_list]);
+ $error   = load_package($program_module, @import, [@package_list]);
 
  ##########
  # Class Interface
  # 
- use File::Package
+ use File::Package;
 
- $package = File::Package->is_package_loaded($package)
- $error   = File::Package->load_package($package)
- $error   = File::Package->load_package($package, @import)
+ $yes = is_package_loaded($package, $program_module);
 
- ###### 
- # Class Interface - Add File::Package to another class
- #
- use File::Package
- use vars qw(@ISA)
- @ISA = qw(File::Package)
-
- $package = __PACKAGE__->is_package_loaded($package)
- $error   = __PACKAGE__->load_package($package)
- $error   = __PACKAGE__->load_package($package, @import)
+ $error   = File::Package->load_package($program_module);
+ $error   = File::Package->load_package($program_module, @import);
+ $error   = File::Package->load_package($program_module, [@package_list]);
+ $error   = File::Package->load_package($program_module, @import, [@package_list]);
 
 =head1 DESCRIPTION
 
-The I<load_package> method attempts to capture any load problems by
+Although a program module and package have the same name
+syntax, they are entirely different.
+A program module is a file. 
+A package is a hash of symbols, a symbol table.
+The Perl convention is that the names for each are the same
+which enhances the appearance that they are the same
+when in fact they are different.
+
+=head2 is_package_loaded subroutine
+
+ $package = is_package_loaded($program_module, $package)
+
+The C<is_package_loaded> subroutine determines if the C<$package>
+is present and the C<$progarm_module> loaded. 
+If C<$package> is absent, 0 or '', C<$package> is set to the 
+C<program_module>.
+
+=head2 load_package subroutine
+
+  $error = load_package($program_module, @import, [@package_list]);
+
+The C<load_package> subroutine attempts to capture any load problems by
 loading the package with a "require " under an eval and capturing
 all the "warn" and $@ messages. 
-The I<@import> is optional and causes the load package messages
-to import the symbols named by I<@import>.
 
-One very useful application is in test scripts. 
+If the C<$program_module> load is successful, 
+the checks that the packages in the @package list are present.
+If @package list is absent, the C<$program_module> uses
+the C<program_module> name as a list of one package.
+
+Finanly the C<$program_module> subroutine will import the symbols
+in the C<@import> list.
+If C<@import> is absent C<$program_module> subroutine does not
+import any symbols; if C<@import> is '', all symbols are imported.
+A C<@import> of 0 usually results in an C<$error>.
+
+The C<$program_module> traps all load errors and all import
+C<Carp::Crock> errors and returns them in the C<$error> string.
+
+One very useful application of the C<load_package> subroutine is in test scripts. 
 If a package does load, it is very helpful that the program does
 not die and reports the reason the package did not load. 
 This information is readily available when loaded at a local site.
@@ -256,40 +264,18 @@ However, it the load occurs at a remote site and the load crashes
 Perl, the remote tester usually will not have this information
 readily available. 
 
-If using it in a test script with the
-'Test' module, be sure to use two arguments 
-(2nd argument must be defined, not 0, not '')
-for &Test::ok; 
-otherwise the &Test::ok will not output the
-the actual and expected in the failure error report.
-For example,
-
- use Test;
- use File::Package qw(load_package);
- my $load_error = load_package($package_name);
- ok(!$load_error, 1);
-
- # skip rests of the tests unless $load_error eq ''
-
 Other applications include using backup alternative software
 if a package does not load. For example if the package
 'Compress::Zlib' did not load, an attempt may be made
 to use the gzip system command. 
 
-=head1 METHODS
+=head1 BUGS
 
-=head2 is_package_loaded method
+The C<load_package> cannot load program modules whose
+name contain the '-' characters. 
+The 'eval' function used to trap the die errors
+believes it means subtraction.
 
- $package = File::Package->is_package_loaded($package)
-
-The I<is_package_loaded> method determines if a package
-vocabulary is present.
-
-For example, if I<File::Basename> is not loaded
-
- ==> File::Package->is_package_loaded('File::Basename')
-
- ''
 =head1 REQUIREMENTS
 
 Coming soon.
@@ -310,24 +296,38 @@ follow on the next lines. For example,
 
  ~~~~~~ The demonstration follows ~~~~~
 
- =>     use File::Spec;
-
  =>     use File::Package;
  =>     my $uut = 'File::Package';
- =>     use File::Package;
- => my $errors = $uut->load_package( 'File::Basename' )
+ => my $error = $uut->load_package( 'File::Basename' )
  ''
 
- => '' ne ($errors = $uut->load_package( 't::File::BadLoad' ) )
- '1'
+ => $error = $uut->load_package( '_File_::BadLoad' )
+ 'Cannot load _File_::BadLoad
+ 	syntax error at E:/User/SoftwareDiamonds/installation/t/File/_File_/BadLoad.pm line 13, near "$FILE "
+ 	Global symbol "$FILE" requires explicit package name at E:/User/SoftwareDiamonds/installation/t/File/_File_/BadLoad.pm line 13.
+ 	Compilation failed in require at (eval 4) line 1.
+ 	Scalar found where operator expected at E:/User/SoftwareDiamonds/installation/t/File/_File_/BadLoad.pm line 13, near "$FILE"
+ 		(Missing semicolon on previous line?)
+ 	'
 
- => '' ne ($errors = $uut->load_package( 't::File::BadVocab' ) )
- '1'
+ => $uut->load_package( '_File_::BadPackage' )
+ '# _File_::BadPackage file but package(s) _File_::BadPackage absent.
+ '
+
+ => $uut->load_package( '_File_::Multi' )
+ '# _File_::Multi file but package(s) _File_::Multi absent.
+ '
+
+ => $error = $uut->load_package( '_File_::Hyphen-Test' )
+ 'Cannot load _File_::Hyphen-Test
+ 	syntax error at (eval 7) line 1, near "require _File_::Hyphen-"
+ 	Warning: Use of "require" without parens is ambiguous at (eval 7) line 1.
+ 	'
 
  => !defined($main::{'find'})
  '1'
 
- => $errors = $uut->load_package( 'File::Find', 'find' )
+ => $error = $uut->load_package( 'File::Find', 'find', ['File::Find'] )
  ''
 
  => defined($main::{'find'})
@@ -336,13 +336,14 @@ follow on the next lines. For example,
  => !defined($main::{'finddepth'})
  '1'
 
- => $errors = $uut->load_package( 'File::Find', '')
- ''
+ => $uut->load_package( 'File::Find', 'Jolly_Green_Giant')
+ '"Jolly_Green_Giant" is not exported by the File::Find module
+ Can't continue after import errors'
 
  => !defined($main::{'finddepth'})
  '1'
 
- => $errors = $uut->load_package( 'File::Find')
+ => $error = $uut->load_package( 'File::Find', '')
  ''
 
  => defined($main::{'finddepth'})
@@ -579,7 +580,6 @@ OR TORT (INCLUDING USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE POSSIBILITY OF SUCH DAMAGE. 
 
-=back
 =for html
 <p><br>
 <!-- BLK ID="NOTICE" -->

@@ -16,7 +16,7 @@ use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
 $VERSION = '1.13';
-$DATE = '2004/04/01';
+$DATE = '2004/04/15';
 $FILE = __FILE__;
 
 use File::Spec; # Added mkpath option, 2003/11/10
